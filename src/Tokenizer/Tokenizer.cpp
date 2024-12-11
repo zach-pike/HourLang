@@ -42,7 +42,8 @@ TokenMap GetTokenMap() {
         { "*=", TokenType::ASSIGN_MULTIPLY },
         { "/=", TokenType::ASSIGN_DIVIDE },
 
-        { "return", TokenType::RETURN }
+        { "return", TokenType::RETURN },
+        { "!", TokenType::NOT },
     };
 
     return tokens;

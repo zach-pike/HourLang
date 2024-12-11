@@ -11,7 +11,7 @@
 
 int main(int argc, char** argv) {
     // Get text code
-    std::string fileCode = ReadFile("examples/test.ps");
+    std::string fileCode = ReadFile("examples/test.hc");
 
     // Tokenize the code
     TokenList tokens = Tokenizer(fileCode);

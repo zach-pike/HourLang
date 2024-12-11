@@ -34,18 +34,21 @@ enum class TokenType {
     FOR = 18,
     WHILE = 19,
     IF = 20,
-    FUNCTION = 21,
-    RETURN = 22,
+    ELSE = 21,
+    FUNCTION = 22,
+    RETURN = 23,
 
-    ADD = 23,
-    SUBTRACT = 24,
-    MULTIPLY = 25,
-    DIVIDE = 26,
+    ADD = 24,
+    SUBTRACT = 25,
+    MULTIPLY = 26,
+    DIVIDE = 27,
 
-    ASSIGN_ADD = 27,
-    ASSIGN_SUBTRACT = 28,
-    ASSIGN_MULTIPLY = 29,
-    ASSIGN_DIVIDE = 30
+    ASSIGN_ADD = 28,
+    ASSIGN_SUBTRACT = 29,
+    ASSIGN_MULTIPLY = 30,
+    ASSIGN_DIVIDE = 31,
+
+    NOT = 32,
 };
 
 constexpr const char* tokenNames[] = {
@@ -76,6 +79,7 @@ constexpr const char* tokenNames[] = {
     "FOR",
     "WHILE",
     "IF",
+    "ELSE"
     "FUNCTION",
     "RETURN",
 
@@ -87,7 +91,9 @@ constexpr const char* tokenNames[] = {
     "ASSIGN_ADD",
     "ASSIGN_SUBTRACT",
     "ASSIGN_MULTIPLY",
-    "ASSIGN_DIVIDE"
+    "ASSIGN_DIVIDE",
+
+    "NOT"
 };
 
 struct CompareByLength {
@@ -116,4 +122,4 @@ using TokenList = std::vector<Token>;
 
 TokenList Tokenizer(std::string code);
 
-bool isExpressionToken(Token t);
+bool IsExpressionToken(Token t);

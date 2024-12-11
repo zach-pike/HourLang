@@ -1,7 +1,13 @@
-h = "";
+function myTestFunc(a, b) {
+    sum=0;
 
-for(i=0; i<10; i+=1;) {
-    h += "hello ";
+    for (i=0; i<a; i+=1;) {
+        for (k=0; k<b; k+=1;) {
+            sum += 1;
+        }
+    }
+
+    return sum;
 }
 
-print(h);
+print(myTestFunc(10, 5));

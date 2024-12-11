@@ -62,6 +62,76 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
 static std::shared_ptr<ASTNode> ParseStatement(const TokenList& tokens, std::size_t& current);
 
 // Parsing functions
+static std::shared_ptr<ASTNode> ParseScope(const TokenList& tokens, std::size_t& current) {
+    ExpectToken(tokens, current, TokenType::LEFT_CURLY);
+
+    // Try and read statements until we reach the closing bracket
+    ASTNodeList children;
+    while(PeekToken(tokens, current, 0).type != TokenType::RIGHT_CURLY) {
+        children.push_back(ParseStatement(tokens, current));
+    }
+
+    ExpectToken(tokens, current, TokenType::RIGHT_CURLY);
+
+    return std::make_shared<ASTNode>(
+        ASTNodeType::SCOPE,
+        children
+    );
+}
+
+static std::shared_ptr<ASTNode> ParseWhile(const TokenList& tokens, std::size_t& current) {
+    ExpectToken(tokens, current, TokenType::WHILE);
+    ExpectToken(tokens, current, TokenType::LEFT_PAREN);
+
+    auto expr = ParseExpression(tokens, current);
+
+    ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
+
+    auto body = ParseScope(tokens, current);
+
+    return std::make_shared<ASTNode>(
+        ASTNodeType::WHILE,
+        ASTNodeList { expr, body }
+    );
+}
+
+static std::shared_ptr<ASTNode> ParseIf(const TokenList& tokens, std::size_t& current) {
+    ExpectToken(tokens, current, TokenType::IF);
+    ExpectToken(tokens, current, TokenType::LEFT_PAREN);
+
+    auto cond = ParseExpression(tokens, current);
+    ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
+
+    ASTNodeList ifContents;
+
+    ifContents.push_back(cond);
+    ifContents.push_back(ParseScope(tokens, current));
+
+    while(current < tokens.size() && PeekToken(tokens, current, 0).type == TokenType::ELSE) {
+        ExpectToken(tokens, current, TokenType::ELSE);
+        bool isElseIf = PeekToken(tokens, current, 0).type == TokenType::IF;
+
+        if (isElseIf) {
+            ExpectToken(tokens, current, TokenType::IF);
+            ExpectToken(tokens, current, TokenType::LEFT_PAREN);
+            auto cond = ParseExpression(tokens, current);
+            ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
+            auto body = ParseScope(tokens, current);
+
+            ifContents.push_back(cond);
+            ifContents.push_back(body);
+        } else {
+            auto body = ParseScope(tokens, current);
+            ifContents.push_back(body);
+        }
+    }
+
+    return std::make_shared<ASTNode>(
+        ASTNodeType::IF,
+        ifContents
+    );
+}
+
 static std::shared_ptr<ASTNode> ParseAssignAdd(const TokenList& tokens, std::size_t& current) {
     std::string varName = ExpectToken(tokens, current, TokenType::LITERAL);
     ExpectToken(tokens, current, TokenType::ASSIGN_ADD);
@@ -123,23 +193,6 @@ static std::shared_ptr<ASTNode> ParseAssignDiv(const TokenList& tokens, std::siz
             value
         },
         varName
-    );
-}
-
-static std::shared_ptr<ASTNode> ParseScope(const TokenList& tokens, std::size_t& current) {
-    ExpectToken(tokens, current, TokenType::LEFT_CURLY);
-
-    // Try and read statements until we reach the closing bracket
-    ASTNodeList children;
-    while(PeekToken(tokens, current, 0).type != TokenType::RIGHT_CURLY) {
-        children.push_back(ParseStatement(tokens, current));
-    }
-
-    ExpectToken(tokens, current, TokenType::RIGHT_CURLY);
-
-    return std::make_shared<ASTNode>(
-        ASTNodeType::SCOPE,
-        children
     );
 }
 
@@ -207,7 +260,7 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
     auto checkLeft = [&](std::shared_ptr<ASTNode> lhs) {
         Token nextToken = PeekToken(tokens, current, 0);
 
-        if (!isExpressionToken(nextToken)) {
+        if (!IsExpressionToken(nextToken)) {
             return lhs;
         }
 
@@ -349,17 +402,21 @@ static std::shared_ptr<ASTNode> ParseFunctionCall(const TokenList& tokens, std::
 static std::shared_ptr<ASTNode> ParseStatement(const TokenList& tokens, std::size_t& current) {
     auto token = PeekToken(tokens, current, 0);
 
-    if (token.type == TokenType::FUNCTION) {
+    if (token.type == TokenType::FOR) {
+        return ParseFor(tokens, current);
+    } else if (token.type == TokenType::WHILE) {
+        return ParseWhile(tokens, current);
+    } else if (token.type == TokenType::IF) {
+        return ParseIf(tokens, current);
+    } else if (token.type == TokenType::FUNCTION) {
         return ParseFunction(tokens, current);
     } else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::LEFT_PAREN) {
         return ParseFunctionCall(tokens, current);
-    } else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::ASSIGN) {
-        return ParseAssignment(tokens, current);
     } else if (token.type == TokenType::RETURN) {
         return ParseReturn(tokens, current);
-    } else if (token.type == TokenType::FOR) {
-        return ParseFor(tokens, current);
-    } else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::ASSIGN_ADD) {
+    } else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::ASSIGN) {
+        return ParseAssignment(tokens, current);
+    }  else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::ASSIGN_ADD) {
         return ParseAssignAdd(tokens, current);
     } else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::ASSIGN_SUBTRACT) {
         return ParseAssignSub(tokens, current);
@@ -367,7 +424,7 @@ static std::shared_ptr<ASTNode> ParseStatement(const TokenList& tokens, std::siz
         return ParseAssignMul(tokens, current);
     } else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::ASSIGN_DIVIDE) {
         return ParseAssignDiv(tokens, current);
-    } else {
+    }  else {
         throw std::runtime_error("Unsupported expression");
     }
 }
