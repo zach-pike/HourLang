@@ -1,5 +1,8 @@
 #include "Tokenizer.hpp"
 
+#include <algorithm>
+#include <iostream>
+
 TokenMap GetTokenMap() {
     TokenMap tokens = {
         { "(", TokenType::LEFT_PAREN },
@@ -25,6 +28,7 @@ TokenMap GetTokenMap() {
         { "for", TokenType::FOR },
         { "while", TokenType::WHILE },
         { "if", TokenType::IF },
+        { "else", TokenType::ELSE },
         { "function", TokenType::FUNCTION },
         { "return ", TokenType::RETURN },
 
@@ -44,7 +48,19 @@ TokenMap GetTokenMap() {
     return tokens;
 }
 
-bool isExpressionToken(Token t) {
+static std::vector<char> GetEqualsSkipCharacters() {
+    std::vector<char> a;
+
+    for (auto t : GetTokenMap()) {
+        if (std::strlen(t.first) == 2 && t.first[1] == '=') {
+            a.push_back(t.first[0]);
+        }
+    }
+
+    return a;
+}
+
+bool IsExpressionToken(Token t) {
     return t.type == TokenType::ADD ||
            t.type == TokenType::SUBTRACT ||
            t.type == TokenType::MULTIPLY ||
@@ -66,6 +82,7 @@ Token::Token(TokenType t, std::any d):
 
 TokenList Tokenizer(std::string code) {
     const TokenMap tokenMap = GetTokenMap();
+    const auto     skipTokens = GetEqualsSkipCharacters();
     TokenList tokenList;
     std::string accumulator = "";
     bool stringMode = false;
@@ -105,9 +122,10 @@ TokenList Tokenizer(std::string code) {
 
         accumulator += code[i];
 
+        bool thisCharIsSkipChar = std::find(skipTokens.begin(), skipTokens.end(), code[i]) != skipTokens.end();
         bool nextCharIsEquals = i+1 < code.size() ? code[i+1] == '=' : false;
 
-        processAccumulator(nextCharIsEquals);
+        processAccumulator(thisCharIsSkipChar &&  nextCharIsEquals);
     }
 
     processAccumulator(false);
