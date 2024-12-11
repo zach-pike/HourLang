@@ -2,7 +2,7 @@
 
 #include <exception>
 #include <iostream>
-
+#include <sstream>
 #include <stdexcept>
 
 #include "AST/AST.hpp"
@@ -16,6 +16,20 @@ std::string ConvToString(std::any v) {
         return std::any_cast<bool>(v) ? "true" : "false";
     } else if (v.type() == typeid(std::string)) {
         return std::any_cast<std::string>(v);
+    } else if (v.type() == typeid(std::vector<std::any>)) {
+        auto a = std::any_cast<std::vector<std::any>>(v);
+        std::stringstream ss;
+        ss << '[';
+
+        for (int i=0; i<a.size(); i++) {
+            ss << ConvToString(a[i]);
+            
+            if (i != a.size()-1) ss << ", ";
+        }
+
+        ss << ']';
+
+        return ss.str();
     } else {
         return "null";
     }

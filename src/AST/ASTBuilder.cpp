@@ -306,6 +306,35 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
                 content
             )
         );
+    } else if (PeekToken(tokens, current, 0).type == TokenType::LEFT_BRACKET) {
+        ExpectToken(tokens, current, TokenType::LEFT_BRACKET);
+        
+        std::vector<std::any> elems;
+
+        // Get a expression then a comma, repeating untill RIGHT_BRACKET
+        while(PeekToken(tokens, current, 0).type != TokenType::RIGHT_BRACKET) {
+            std::string lt = ExpectToken(tokens, current, TokenType::LITERAL);
+
+            auto a = StringToValue(lt);
+
+            if (!a.has_value()) throw std::runtime_error("Arrays do not support variable initialization as of yet!");
+
+            elems.push_back(a.value());
+                
+            if (PeekToken(tokens, current, 0).type == TokenType::RIGHT_BRACKET) break;
+            ExpectToken(tokens, current, TokenType::COMMA);
+        }
+
+        ExpectToken(tokens, current, TokenType::RIGHT_BRACKET);
+
+        return checkLeft(
+                std::make_shared<ASTNode>(
+                    ASTNodeType::LITERAL,
+                    ASTNodeList {},
+                    elems
+                )
+            );
+
     } else {
         std::string literal = ExpectToken(tokens, current, TokenType::LITERAL);
         

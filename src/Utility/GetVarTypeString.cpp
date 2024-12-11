@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 
 const char* GetVarTypeString(std::any v) {
     if (v.type() == typeid(int)) {
@@ -12,6 +13,8 @@ const char* GetVarTypeString(std::any v) {
         return "bool";
     } else if (v.type() == typeid(std::string)) {
         return "string";
+    } else if (v.type() == typeid(std::vector<std::any>)) {
+        return "array";
     }
 
     return "null";
