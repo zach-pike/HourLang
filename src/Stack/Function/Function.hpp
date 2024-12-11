@@ -11,7 +11,7 @@ using InternalFunction = std::shared_ptr<ASTNode>;
 
 using ParameterValueList = std::vector<std::any>;
 using ParameterNameList = std::vector<std::string>;
-using ExternalFunction = std::function<std::any(ParameterValueList, ParameterNameList)>;
+using ExternalFunction = std::function<std::any(ParameterValueList, ParameterNameList, Stack&)>;
 
 class Function {
 private:

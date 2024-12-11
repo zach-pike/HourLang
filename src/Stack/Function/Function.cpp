@@ -37,7 +37,7 @@ std::any Function::callFunction(std::vector<std::any> parameterValues, Stack& st
         return stack.getReturnValue();
 
     } else if (std::holds_alternative<ExternalFunction>(func)) {
-        return std::get<ExternalFunction>(func)(parameterValues, parameters);
+        return std::get<ExternalFunction>(func)(parameterValues, parameters, stack);
     }
 
     throw std::runtime_error("Invalid function type");
