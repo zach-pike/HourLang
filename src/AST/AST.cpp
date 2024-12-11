@@ -200,12 +200,17 @@ std::any ASTNode::getValue(Stack& stack) {
             auto loop = children[3];
             assert(loop->type == ASTNodeType::SCOPE);
 
+            stack.pushScope();
+
             for (initialize->getValue(stack); 
                  ConvToBool(comparison->getValue(stack)); 
                  increment->getValue(stack))
             {
                 loop->getValue(stack);
             }
+
+            stack.popScope();
+
 
             return std::any();
         } break;
