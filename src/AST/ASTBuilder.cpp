@@ -429,7 +429,7 @@ static std::shared_ptr<ASTNode> ParseStatement(const TokenList& tokens, std::siz
     }
 }
 
-ASTNodeList buildAST(TokenList tokens) {
+ASTNodeList BuildAST(TokenList tokens) {
     std::size_t currentToken = 0;
     
     ASTNodeList ast;
@@ -438,4 +438,10 @@ ASTNodeList buildAST(TokenList tokens) {
     }
 
     return ast;
+}
+
+void ExecAST(const ASTNodeList& list, Stack& stack) {
+    for (const auto& n : list) {
+        n->getValue(stack);
+    }
 }
