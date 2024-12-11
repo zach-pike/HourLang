@@ -7,6 +7,8 @@
 #include "Exceptions/Exceptions.hpp"
 
 #include "Utility/Conv.hpp"
+#include "Utility/Math.hpp"
+
 
 ASTNode::ASTNode(ASTNodeType _type):
     type(_type) {}
@@ -27,7 +29,8 @@ std::any ASTNode::getValue(Stack& stack) {
                 data.type() == typeid(std::string) ||
                 data.type() == typeid(int) ||
                 data.type() == typeid(float) ||
-                data.type() == typeid(bool)
+                data.type() == typeid(bool) ||
+                data.type() == typeid(std::vector<std::any>)
             );
 
             return data;
@@ -280,28 +283,7 @@ std::any ASTNode::getValue(Stack& stack) {
             std::any lhs = children[0]->getValue(stack);
             std::any rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) || rhs.type() == typeid(std::string)) {
-                std::string s1 = lhs.type() == typeid(std::string) ? std::any_cast<std::string>(lhs) : ConvToString(lhs);
-                std::string s2 = rhs.type() == typeid(std::string) ? std::any_cast<std::string>(rhs) : ConvToString(rhs);
-
-                return s1 + s2;
-            } else if (lhs.type() == typeid(float) || rhs.type() == typeid(float)) {
-                float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-                float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
-
-                return f1 + f2;
-            } else if (lhs.type() == typeid(int) || rhs.type() == typeid(int)) {
-                int i1 = lhs.type() == typeid(int) ? std::any_cast<int>(lhs) : ConvToInt(lhs);
-                int i2 = rhs.type() == typeid(int) ? std::any_cast<int>(rhs) : ConvToInt(rhs);
-
-                return i1 + i2;
-            } else {
-                // Only other type combo left is bool + bool
-                bool b1 = std::any_cast<bool>(lhs);
-                bool b2 = std::any_cast<bool>(rhs);
-
-                return b1 || b2;
-            }
+            return Add(lhs, rhs);
         } break;
 
         case ASTNodeType::SUBTRACT: {
@@ -309,19 +291,7 @@ std::any ASTNode::getValue(Stack& stack) {
             std::any lhs = children[0]->getValue(stack);
             std::any rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = std::any_cast<float>(lhs);
-                float f2 =  std::any_cast<float>(rhs);
-
-                return f1 - f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = std::any_cast<int>(lhs);
-                int i2 = std::any_cast<int>(rhs);
-
-                return i1 - i2;
-            } else {
-                throw std::runtime_error("Cannot subtract with presented types!");
-            }
+            return Subtract(lhs, rhs);
         } break;
 
         case ASTNodeType::MULTIPLY: {
@@ -329,19 +299,7 @@ std::any ASTNode::getValue(Stack& stack) {
             std::any lhs = children[0]->getValue(stack);
             std::any rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-                float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
-
-                return f1 * f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = lhs.type() == typeid(int) ? std::any_cast<int>(lhs) : ConvToInt(lhs);
-                int i2 = rhs.type() == typeid(int) ? std::any_cast<int>(rhs) : ConvToInt(rhs);
-
-                return i1 * i2;
-            } else {
-                throw std::runtime_error("Cannot multiply with string!");
-            }
+            return Multiply(lhs, rhs);
         } break;
 
         case ASTNodeType::DIVIDE: {
@@ -349,19 +307,7 @@ std::any ASTNode::getValue(Stack& stack) {
             std::any lhs = children[0]->getValue(stack);
             std::any rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-                float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
-
-                return f1 / f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = lhs.type() == typeid(int) ? std::any_cast<int>(lhs) : ConvToInt(lhs);
-                int i2 = rhs.type() == typeid(int) ? std::any_cast<int>(rhs) : ConvToInt(rhs);
-
-                return i1 / i2;
-            } else {
-                throw std::runtime_error("Cannot divide with string!");
-            }
+            return Divide(lhs, rhs);
         } break;
 
         case ASTNodeType::CALL: {
@@ -435,32 +381,61 @@ std::any ASTNode::getValue(Stack& stack) {
             std::any lhs = var.value();
             std::any rhs = children[0]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) || rhs.type() == typeid(std::string)) {
-                std::string s1 = lhs.type() == typeid(std::string) ? std::any_cast<std::string>(lhs) : ConvToString(lhs);
-                std::string s2 = rhs.type() == typeid(std::string) ? std::any_cast<std::string>(rhs) : ConvToString(rhs);
-
-                stack.setVariable(varName, s1 + s2);
-            } else if (lhs.type() == typeid(float) || rhs.type() == typeid(float)) {
-                float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-                float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
-
-                stack.setVariable(varName, f1 + f2);
-            } else if (lhs.type() == typeid(int) || rhs.type() == typeid(int)) {
-                int i1 = lhs.type() == typeid(int) ? std::any_cast<int>(lhs) : ConvToInt(lhs);
-                int i2 = rhs.type() == typeid(int) ? std::any_cast<int>(rhs) : ConvToInt(rhs);
-
-                stack.setVariable(varName, i1 + i2);
-            } else {
-                // Only other type combo left is bool + bool
-                bool b1 = std::any_cast<bool>(lhs);
-                bool b2 = std::any_cast<bool>(rhs);
-
-                stack.setVariable(varName, b1 + b2);
-            }
+            stack.setVariable(varName, Add(lhs, rhs));
 
             return std::any();
         } break;
 
+        case ASTNodeType::SUB_ASSIGN: {
+            assert(children.size() == 1);
+            
+            assert(data.type() == typeid(std::string));
+            auto varName = std::any_cast<std::string>(data);
+
+            auto var = stack.getVariable(varName);
+            if (!var.has_value()) throw NoVariableFound(varName);
+
+            std::any lhs = var.value();
+            std::any rhs = children[0]->getValue(stack);
+
+            stack.setVariable(varName, Subtract(lhs, rhs));
+
+            return std::any();
+        } break;
+
+        case ASTNodeType::MUL_ASSIGN: {
+            assert(children.size() == 1);
+            
+            assert(data.type() == typeid(std::string));
+            auto varName = std::any_cast<std::string>(data);
+
+            auto var = stack.getVariable(varName);
+            if (!var.has_value()) throw NoVariableFound(varName);
+
+            std::any lhs = var.value();
+            std::any rhs = children[0]->getValue(stack);
+
+            stack.setVariable(varName, Multiply(lhs, rhs));
+
+            return std::any();
+        } break;
+
+        case ASTNodeType::DIV_ASSIGN: {
+            assert(children.size() == 1);
+            
+            assert(data.type() == typeid(std::string));
+            auto varName = std::any_cast<std::string>(data);
+
+            auto var = stack.getVariable(varName);
+            if (!var.has_value()) throw NoVariableFound(varName);
+
+            std::any lhs = var.value();
+            std::any rhs = children[0]->getValue(stack);
+
+            stack.setVariable(varName, Divide(lhs, rhs));
+
+            return std::any();
+        } break;
     }
 
     return std::any();
