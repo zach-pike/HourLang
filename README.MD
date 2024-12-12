@@ -40,12 +40,6 @@ myarr = myFunc(myArr);
    - `bool(v)`: Converts the variable to a `bool` type
    - `float(v)`: Converts the variable to a `float` type
    - `array(v1, v2, ...)`: Initialize a array with multiple values
- - Math
-   - `min(x, y)`: Returns the smaller value
-   - `max(x, y)`: Returns the bigger value
-   - `mod(x, y)`: Returns x MOD y 
-   - `randomInt(min, max)`: Returns a random int (inclusive)
-   - `random()`: Returns a random scalar `float`
  - Object Manipulation
    - `append(obj, itm)`: Appends `itm` onto `obj`. Returns modified `obj`
    - `get(obj, idx)`: Get position `idx` inside of `obj`. Returns item or null
@@ -57,6 +51,17 @@ myarr = myFunc(myArr);
  - Misc
    - `ascii(v)`: Returns a `string` with a single char of `v` converted via ascii
 
+# `Math` Library functions
+Use the `Math` library with this code at the top
+```js
+import Math;
+```
+ - `min(x, y)`: Returns the smaller value
+ - `max(x, y)`: Returns the bigger value
+ - `mod(x, y)`: Returns x MOD y 
+ - `randomInt(min, max)`: Returns a random int (inclusive)
+ - `random()`: Returns a random scalar `float`
+ 
 ## Array literal (`[]`) vs `array()`
 Array literals like `[1, 2, 3, 4]` and `["hello", "world"]` can only contain literal values like strings, numbers, and booleans so, when wanting to create a `array` with variables or variable-derrived values, use `array()`.
 
