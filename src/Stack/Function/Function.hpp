@@ -15,7 +15,7 @@ using ParameterValueList = Array;
 using ParameterNameList = std::vector<std::string>;
 using ExternalFunction = std::function<std::any(ParameterValueList, Stack&)>;
 
-struct ExternalParameterInformation {
+struct ExternalFunctionParameterInformation {
     std::vector<VariableType> requiredVariableTypes;
 
     bool hasVaArgs;
@@ -27,11 +27,11 @@ struct ExternalParameterInformation {
 class Function {
 private:
     std::variant<InternalFunction, ExternalFunction> func;
-    std::variant<ParameterNameList,  ExternalParameterInformation> parameters;
+    std::variant<ParameterNameList,  ExternalFunctionParameterInformation> parameters;
 
 public:
     Function(InternalFunction f, ParameterNameList p);
-    Function(ExternalFunction f, ExternalParameterInformation p);
+    Function(ExternalFunction f, ExternalFunctionParameterInformation p);
 
     std::any callFunction(ParameterValueList parameterValues, Stack& stack);
 };

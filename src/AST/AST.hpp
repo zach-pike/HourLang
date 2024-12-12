@@ -37,7 +37,7 @@ enum class ASTNodeType {
     MUL_ASSIGN = 22,
     DIV_ASSIGN = 23,
 
-    NOT = 24
+    IMPORT = 24
 };
 
 constexpr const char* nodeNames[] = {

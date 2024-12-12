@@ -152,3 +152,16 @@ public:
         return msg.c_str();
     }
 };
+
+class ModuleNotFound : public std::exception {
+private:
+    std::string msg;
+public:
+    ModuleNotFound(std::string name) {
+        msg = "Could not locate module \"" + name + "\" in module paths!";
+    }
+
+    const char* what() const noexcept override {
+        return msg.c_str();
+    }
+};

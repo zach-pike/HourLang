@@ -14,45 +14,6 @@
 #include "AST/ASTBuilder.hpp"
 #include "Tokenizer/Tokenizer.hpp"
 
-static std::any minFunc(Array params, Stack& s) {
-    if (params[0].type() == typeid(float) || params[1].type() == typeid(float)) {
-        float f1 = params[0].type() == typeid(float) ? std::any_cast<float>(params[0]) : ConvToFloat(params[0]);
-        float f2 = params[1].type() == typeid(float) ? std::any_cast<float>(params[1]) : ConvToFloat(params[1]);
-
-        return std::min(f1, f2);
-    } else {
-        int i1 = std::any_cast<int>(params[0]);
-        int i2 =  std::any_cast<int>(params[1]);
-
-        return std::min(i1, i2);
-    }
-}
-
-static std::any maxFunc(Array params, Stack& s) {
-    if (params[0].type() == typeid(float) || params[1].type() == typeid(float)) {
-        float f1 = params[0].type() == typeid(float) ? std::any_cast<float>(params[0]) : ConvToFloat(params[0]);
-        float f2 = params[1].type() == typeid(float) ? std::any_cast<float>(params[1]) : ConvToFloat(params[1]);
-
-        return std::max(f1, f2);
-    } else  {
-        int i1 = std::any_cast<int>(params[0]);
-        int i2 =  std::any_cast<int>(params[1]);
- 
-        return std::max(i1, i2); 
-    }
-}
-
-static std::any randIntFunc(Array params, Stack& s) {
-    Int min = std::any_cast<Int>(params[0]);
-    Int max = std::any_cast<Int>(params[1]);
-
-    return (int)(min + rand() % (max - min + 1));
-}
-
-static std::any randomFunc(Array params, Stack& s) {
-    return (float)rand() / (float)INT_MAX;
-}
-
 static std::any toStringFunc(Array params, Stack& s) {
     return ConvToString(params[0]);
 }
@@ -88,24 +49,6 @@ static std::any sizeFunc(Array params, Stack& s) {
 
     throw std::runtime_error("Cannot determine Size of " + std::string(GetVarTypeString(params[0])));
     return std::any();
-}
-
-static int safe_mod(int a, int b) {
-    return ((a % b) + b) % b;
-}
-
-static std::any modFunc(Array params, Stack& s) {
-    if (params[0].type() == typeid(float) || params[1].type() == typeid(float)) {
-        float f1 = params[0].type() == typeid(float) ? std::any_cast<float>(params[0]) : ConvToFloat(params[0]);
-        float f2 = params[1].type() == typeid(float) ? std::any_cast<float>(params[1]) : ConvToFloat(params[1]);
-
-        return std::fmod(f1, f2);
-    } else {
-        int i1 = std::any_cast<int>(params[0]);
-        int i2 =  std::any_cast<int>(params[1]);
-
-        return safe_mod(i1, i2);
-    }
 }
 
 static std::any appendFunc(Array params, Stack& s) {
@@ -225,7 +168,7 @@ static std::any asciiFunc(Array params, Stack& s) {
 
 
 void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
-    auto noArgs = ExternalParameterInformation{
+    auto noArgs = ExternalFunctionParameterInformation{
         .requiredVariableTypes = std::vector<VariableType>(),
         .hasVaArgs = false,
         .minVaArgs = 0,
@@ -233,7 +176,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         .vaType = VariableType::ANY
     };
 
-    auto oneRequiredAny = ExternalParameterInformation{
+    auto oneRequiredAny = ExternalFunctionParameterInformation{
         .requiredVariableTypes = std::vector<VariableType>({ VariableType::ANY }),
         .hasVaArgs = false,
         .minVaArgs = 0,
@@ -241,7 +184,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         .vaType = VariableType::ANY
     };
 
-    auto twoRequiredAny = ExternalParameterInformation{
+    auto twoRequiredAny = ExternalFunctionParameterInformation{
         .requiredVariableTypes = std::vector<VariableType>({ VariableType::ANY, VariableType::ANY }),
         .hasVaArgs = false,
         .minVaArgs = 0,
@@ -249,7 +192,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         .vaType = VariableType::ANY
     };
 
-    auto twoRequiredNum = ExternalParameterInformation{
+    auto twoRequiredNum = ExternalFunctionParameterInformation{
         .requiredVariableTypes = std::vector<VariableType>({ VariableType::FLOAT | VariableType::INT, VariableType::FLOAT | VariableType::INT }),
         .hasVaArgs = false,
         .minVaArgs = 0,
@@ -257,7 +200,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         .vaType = VariableType::ANY
     };
 
-    auto unlimitedVaAnyNoReq = ExternalParameterInformation{
+    auto unlimitedVaAnyNoReq = ExternalFunctionParameterInformation{
         .requiredVariableTypes = std::vector<VariableType>({}),
         .hasVaArgs = true,
         .minVaArgs = 0,
@@ -346,16 +289,10 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         )
     );
     
-    s.setFunction("min", std::make_shared<Function>(minFunc, twoRequiredNum));
-    s.setFunction("max", std::make_shared<Function>(maxFunc, twoRequiredNum));
-    s.setFunction("mod", std::make_shared<Function>(modFunc, twoRequiredNum));
-    s.setFunction("randomInt", std::make_shared<Function>(randIntFunc, twoRequiredNum));
-    s.setFunction("random", std::make_shared<Function>(randomFunc, noArgs));
-
     s.setFunction("append", 
         std::make_shared<Function>(
             appendFunc, 
-            ExternalParameterInformation{
+            ExternalFunctionParameterInformation{
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::ANY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
@@ -368,7 +305,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
     s.setFunction("get", 
         std::make_shared<Function>(
             getFunc, 
-            ExternalParameterInformation{
+            ExternalFunctionParameterInformation{
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
@@ -382,7 +319,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
     s.setFunction("set", 
         std::make_shared<Function>(
             setFunc,
-            ExternalParameterInformation{
+            ExternalFunctionParameterInformation{
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT, VariableType::ANY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
@@ -408,7 +345,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
                 s.push_back((char) std::any_cast<Int>(params[0]));
                 return s;
             },
-            ExternalParameterInformation{
+            ExternalFunctionParameterInformation{
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::INT }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
@@ -421,7 +358,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
     s.setFunction("pop",
         std::make_shared<Function>(
             popFunc, 
-            ExternalParameterInformation{
+            ExternalFunctionParameterInformation{
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
@@ -434,7 +371,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
     s.setFunction("size",
         std::make_shared<Function>(
             sizeFunc, 
-            ExternalParameterInformation{
+            ExternalFunctionParameterInformation{
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
@@ -447,7 +384,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
     s.setFunction("erase",
         std::make_shared<Function>(
             eraseFunc, 
-            ExternalParameterInformation{
+            ExternalFunctionParameterInformation{
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT, VariableType::INT }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,

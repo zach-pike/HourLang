@@ -43,7 +43,7 @@ TokenMap GetTokenMap() {
         { "/=", TokenType::ASSIGN_DIVIDE },
 
         { "return", TokenType::RETURN },
-        { "!", TokenType::NOT },
+        { "import", TokenType::IMPORT },
     };
 
     return tokens;

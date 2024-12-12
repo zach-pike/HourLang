@@ -1,1 +1,3 @@
-print(max(5,2));
+import Math;
+
+println(mod(3, 2));

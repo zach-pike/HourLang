@@ -437,6 +437,13 @@ std::any ASTNode::getValue(Stack& stack) {
 
             return std::any();
         } break;
+
+        case ASTNodeType::IMPORT: {
+            assert(data.type() == typeid(std::string));
+            std::string fName = std::any_cast<std::string>(data);
+
+            stack.import(fName);
+        }
     }
 
     return std::any();

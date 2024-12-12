@@ -80,6 +80,18 @@ static std::shared_ptr<ASTNode> ParseScope(const TokenList& tokens, std::size_t&
     );
 }
 
+static std::shared_ptr<ASTNode> ParseImport(const TokenList& tokens, std::size_t& current) {
+    ExpectToken(tokens, current, TokenType::IMPORT);
+    std::string importVal = ExpectToken(tokens, current, TokenType::LITERAL);
+    ExpectToken(tokens, current, TokenType::SEMICOLON);
+
+    return std::make_shared<ASTNode>(
+        ASTNodeType::IMPORT,
+        ASTNodeList {},
+        importVal
+    );
+}
+
 static std::shared_ptr<ASTNode> ParseWhile(const TokenList& tokens, std::size_t& current) {
     ExpectToken(tokens, current, TokenType::WHILE);
     ExpectToken(tokens, current, TokenType::LEFT_PAREN);
@@ -454,7 +466,9 @@ static std::shared_ptr<ASTNode> ParseStatement(const TokenList& tokens, std::siz
         return ParseAssignMul(tokens, current);
     } else if (token.type == TokenType::LITERAL && current + 1 < tokens.size() && PeekToken(tokens, current, 1).type == TokenType::ASSIGN_DIVIDE) {
         return ParseAssignDiv(tokens, current);
-    }  else {
+    } else if (token.type == TokenType::IMPORT) {
+        return ParseImport(tokens, current);
+    } else {
         throw std::runtime_error("Unsupported expression");
     }
 }

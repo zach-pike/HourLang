@@ -11,7 +11,7 @@ Function::Function(InternalFunction f, ParameterNameList p):
     func(f),
     parameters(p) {}
 
-Function::Function(ExternalFunction f, ExternalParameterInformation p):
+Function::Function(ExternalFunction f, ExternalFunctionParameterInformation p):
     func(f),
     parameters(p) {}
 
@@ -52,25 +52,21 @@ std::any Function::callFunction(ParameterValueList parameterValues, Stack& stack
         return stack.getReturnValue();
 
     } else if (std::holds_alternative<ExternalFunction>(func)) {
-        ExternalParameterInformation info = std::get<ExternalParameterInformation>(parameters);
+        ExternalFunctionParameterInformation info = std::get<ExternalFunctionParameterInformation>(parameters);
 
         Array argsList;
 
         // Try and get all required args
-        // assert(parameterValues.size() >= info.requiredVariableTypes.size());
-
         if (parameterValues.size() < info.requiredVariableTypes.size()) throw InvalidParameterCount(info.requiredVariableTypes.size());
+
         argsList.insert(argsList.end(), parameterValues.begin(), parameterValues.begin() + info.requiredVariableTypes.size());
 
         // Verify types
         for (int i=0; i<info.requiredVariableTypes.size(); i++) {
             VariableType vt = info.requiredVariableTypes[i];
-            
-            // Get supplied type
-            VariableType givenType = getVarType(argsList[i]);
-
-            if (vt != VariableType::ANY && !(givenType & vt)) {
-                throw InvalidParameterType(vt, givenType);
+        
+            if (vt != VariableType::ANY && !(getVarType(argsList[i]) & vt)) {
+                throw InvalidParameterType(vt, getVarType(argsList[i]));
             }
         }
 
@@ -88,10 +84,8 @@ std::any Function::callFunction(ParameterValueList parameterValues, Stack& stack
                 const auto& vaArgsList = std::any_cast<Array>(argsList.back());
 
                 for (int i=0; i<vaArgsList.size(); i++) {
-                    VariableType providedType = getVarType(vaArgsList[i]);
-
-                    if (!(info.vaType & providedType)) {
-                        throw InvalidParameterType(info.vaType, providedType);
+                    if (!(info.vaType & getVarType(vaArgsList[i]))) {
+                        throw InvalidParameterType(info.vaType, getVarType(vaArgsList[i]));
                     } 
                 }
             }

@@ -4,6 +4,7 @@
 #include <any>
 #include <functional>
 #include <cstdint>
+#include <string>
 
 #define ARR_SZ(a) (sizeof(a)/sizeof(a[0]))
 

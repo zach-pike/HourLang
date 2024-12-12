@@ -48,7 +48,7 @@ enum class TokenType {
     ASSIGN_MULTIPLY = 30,
     ASSIGN_DIVIDE = 31,
 
-    NOT = 32,
+    IMPORT = 32,
 };
 
 constexpr const char* tokenNames[] = {
@@ -79,7 +79,7 @@ constexpr const char* tokenNames[] = {
     "FOR",
     "WHILE",
     "IF",
-    "ELSE"
+    "ELSE",
     "FUNCTION",
     "RETURN",
 
@@ -93,7 +93,7 @@ constexpr const char* tokenNames[] = {
     "ASSIGN_MULTIPLY",
     "ASSIGN_DIVIDE",
 
-    "NOT"
+    "IMPORT"
 };
 
 struct CompareByLength {

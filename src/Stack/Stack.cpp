@@ -1,13 +1,22 @@
 #include "Stack.hpp"
+#include "Modules/ExternalModule/ExternalModule.hpp"
+#include "Exceptions/Exceptions.hpp"
 
 #include <iostream>
+#include <assert.h>
+#include <windows.h>
 
 Stack::Stack() {
     // Global scope
     scopes.push_back(Scope());
 }
 
-Stack::~Stack() {}
+Stack::~Stack() {
+    // Unload open modules
+    for (auto mod : loadedModules) {
+        FreeLibrary((HMODULE) mod.libraryHandle);
+    }
+}
 
 void Stack::pushScope() {
     scopes.push_back(Scope());
@@ -15,6 +24,62 @@ void Stack::pushScope() {
 
 void Stack::popScope() {
     scopes.pop_back();
+}
+
+void Stack::import(std::string name) {
+    // Try and find the file we need
+    bool foundModule = false;
+    std::filesystem::path modulePath;
+    for (auto& searchPath : moduleSearchPaths) {
+        for (auto item : std::filesystem::directory_iterator(searchPath)) {
+            if (item.is_directory()) continue;
+
+            if (item.path().stem() == name) {
+                foundModule = true;
+                modulePath = item.path();
+                break;
+            }
+        }
+
+        if (foundModule) break;
+    }
+
+    if (!foundModule) throw ModuleNotFound(name);
+    
+    std::string modulePathStr = std::filesystem::absolute(modulePath).u8string();
+    HMODULE library = LoadLibrary(modulePathStr.c_str());
+
+    ModuleMainFunc moduleMain = (ModuleMainFunc)GetProcAddress(library, "moduleMain");
+    GetModuleFunctionsFunc functions = (GetModuleFunctionsFunc) GetProcAddress(library, "getModuleFunctions");
+
+    // Initialize Module 
+    // Call module main
+    moduleMain(*this);
+
+    // Next load the list of functions
+    ModuleFunctionList info = functions();
+
+    for (auto& func : info) {
+        setFunction(
+            func.functionName,
+            std::make_shared<Function>(
+                (std::any(*)(ParameterValueList, Stack&)) GetProcAddress(library, func.symbolName.c_str()),
+                func.paramInfo
+            )    
+        );
+    }
+
+    loadedModules.push_back(
+        LoadedModule{
+            .moduleName = name,
+            .loadedFunctions = info,
+            .libraryHandle = (void*) library
+        }
+    );
+}
+
+void Stack::addModulePath(std::filesystem::path path) {
+    moduleSearchPaths.push_back(path);
 }
 
 std::optional<std::any> Stack::getVariable(std::string name) const {

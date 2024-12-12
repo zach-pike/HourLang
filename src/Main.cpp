@@ -44,31 +44,33 @@ int main(int argc, char** argv) {
     std::string file;
     auto interpret = app.add_option("-i,--interpret", file, "Execute a file")->type_name("FILE");
 
+    std::vector<std::string> paths;
+    auto addModulePathOpt = app.add_option("-p,--path", paths, "Add a additional module path")->type_name("Path");
+
     int debugLevel = 0;
     auto debug = app.add_option("-d,--debug", debugLevel, "Set the debug level")->type_name("0, 1, 2");
 
     CLI11_PARSE(app, argc, argv);
 
+    HourInterpreter interp;
+    interp.setDebugLevel(debugLevel);
+    interp.addGlobals(print, newline);
+
+    // Add default library folder
+    interp.getStack().addModulePath(std::filesystem::current_path() / "libraries");
+
+    for (auto modPath : paths) {
+        auto fp = std::filesystem::absolute(modPath);
+
+        if (!std::filesystem::is_directory(fp)) throw std::runtime_error("Provided path is not a directory!");
+        interp.getStack().addModulePath(fp);
+    }
+
     if (interpret->count() > 0) {
-        HourInterpreter interp;
-
-        interp.setDebugLevel(debugLevel);
-
-        interp.addGlobals(print, newline);
         interp.execFile(file);
 
         exit(0);
     }
-
-    HourInterpreter interp;
-    interp.addGlobals(
-        [](std::string s) {
-            std::cout << s;
-        },
-        []() {
-            std::cout << '\n';
-        }
-    );
 
     interp.getStack().setFunction(
         "exit",
@@ -78,7 +80,7 @@ int main(int argc, char** argv) {
 
                 return std::any();
             },
-            ExternalParameterInformation {
+            ExternalFunctionParameterInformation {
                 .requiredVariableTypes = std::vector<VariableType>(),
                 .hasVaArgs = false
             }
