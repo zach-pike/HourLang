@@ -9,8 +9,12 @@
 HourInterpreter::HourInterpreter() {}
 HourInterpreter::~HourInterpreter() {}
 
-void HourInterpreter::addGlobals() {
-    InitGlobals(stack);
+void HourInterpreter::addGlobals(PrintFunction pf, NewlineFunction nf) {
+    InitGlobals(stack, pf, nf);
+}
+
+void HourInterpreter::reset() {
+    stack = Stack();
 }
 
 void HourInterpreter::execCode(std::string code) {

@@ -26,11 +26,11 @@ std::any ASTNode::getValue(Stack& stack) {
     switch(type) {
         case ASTNodeType::LITERAL: {
             assert(
-                data.type() == typeid(std::string) ||
-                data.type() == typeid(int) ||
-                data.type() == typeid(float) ||
-                data.type() == typeid(bool) ||
-                data.type() == typeid(std::vector<std::any>)
+                data.type() == typeid(String) ||
+                data.type() == typeid(Int) ||
+                data.type() == typeid(Float) ||
+                data.type() == typeid(Bool) ||
+                data.type() == typeid(Array)
             );
 
             return data;
@@ -312,7 +312,7 @@ std::any ASTNode::getValue(Stack& stack) {
 
         case ASTNodeType::CALL: {
             // Get value of all parameters
-            std::vector<std::any> params;
+            Array params;
             for (auto& child : children) {
                 params.push_back(child->getValue(stack));
             }

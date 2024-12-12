@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "Types.hpp"
 #include "AST/AST.hpp"
 
 std::string ConvToString(std::any v) {
@@ -16,8 +17,8 @@ std::string ConvToString(std::any v) {
         return std::any_cast<bool>(v) ? "true" : "false";
     } else if (v.type() == typeid(std::string)) {
         return std::any_cast<std::string>(v);
-    } else if (v.type() == typeid(std::vector<std::any>)) {
-        auto a = std::any_cast<std::vector<std::any>>(v);
+    } else if (v.type() == typeid(Array)) {
+        auto a = std::any_cast<Array>(v);
         std::stringstream ss;
         ss << '[';
 

@@ -1,5 +1,6 @@
 #include "ASTBuilder.hpp"
 #include "Exceptions/Exceptions.hpp"
+#include "Types.hpp"
 
 #include <optional>
 
@@ -309,7 +310,7 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
     } else if (PeekToken(tokens, current, 0).type == TokenType::LEFT_BRACKET) {
         ExpectToken(tokens, current, TokenType::LEFT_BRACKET);
         
-        std::vector<std::any> elems;
+        Array elems;
 
         // Get a expression then a comma, repeating untill RIGHT_BRACKET
         while(PeekToken(tokens, current, 0).type != TokenType::RIGHT_BRACKET) {
@@ -470,7 +471,12 @@ ASTNodeList BuildAST(TokenList tokens) {
 }
 
 void ExecAST(const ASTNodeList& list, Stack& stack) {
-    for (const auto& n : list) {
-        n->getValue(stack);
+    try {
+        for (const auto& n : list) {
+            n->getValue(stack);
+            // n->printDebug();
+        }
+    } catch (std::exception& e) {
+        std::cout << "Error! " << e.what() << '\n';
     }
 }

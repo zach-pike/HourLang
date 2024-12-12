@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <sstream>
 
 #include "Utility/Conv.hpp"
 #include "Utility/GetVarTypeString.hpp"
@@ -13,101 +14,76 @@
 #include "AST/ASTBuilder.hpp"
 #include "Tokenizer/Tokenizer.hpp"
 
-static std::any printlnFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    for (int i=0; i<params.size(); i++) {
-        std::cout << ConvToString(params[i]);
-        if (i != (params.size() - 1)) std::cout << ' ';
-    }
-    std::cout << '\n';
-    return std::any();
-}
-
-static std::any printFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    for (int i=0; i<params.size(); i++) {
-        std::cout << ConvToString(params[i]);
-        if (i != (params.size() - 1)) std::cout << ' ';
-    }
-    return std::any();
-}
-
-static std::any typeFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    return std::string(GetVarTypeString(params[0]));
-}
-
-static std::any minFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any minFunc(Array params, Stack& s) {
     if (params[0].type() == typeid(float) || params[1].type() == typeid(float)) {
         float f1 = params[0].type() == typeid(float) ? std::any_cast<float>(params[0]) : ConvToFloat(params[0]);
         float f2 = params[1].type() == typeid(float) ? std::any_cast<float>(params[1]) : ConvToFloat(params[1]);
 
         return std::min(f1, f2);
-    } else if (params[0].type() == typeid(int) && params[1].type() == typeid(int)) {
+    } else {
         int i1 = std::any_cast<int>(params[0]);
         int i2 =  std::any_cast<int>(params[1]);
 
         return std::min(i1, i2);
-    } else {
-        throw std::runtime_error("Cannot find min with types " + std::string(GetVarTypeString(params[0])) + " and " + std::string(GetVarTypeString(params[1])));
     }
 }
 
-static std::any maxFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any maxFunc(Array params, Stack& s) {
     if (params[0].type() == typeid(float) || params[1].type() == typeid(float)) {
         float f1 = params[0].type() == typeid(float) ? std::any_cast<float>(params[0]) : ConvToFloat(params[0]);
         float f2 = params[1].type() == typeid(float) ? std::any_cast<float>(params[1]) : ConvToFloat(params[1]);
 
         return std::max(f1, f2);
-    } else if (params[0].type() == typeid(int) && params[1].type() == typeid(int)) {
+    } else  {
         int i1 = std::any_cast<int>(params[0]);
         int i2 =  std::any_cast<int>(params[1]);
  
         return std::max(i1, i2); 
-    } else {
-        throw std::runtime_error("Cannot find max with types " + std::string(GetVarTypeString(params[0])) + " and " + std::string(GetVarTypeString(params[1])));
     }
 }
 
-static std::any randIntFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    int min = ConvToInt(params[0]);
-    int max = ConvToInt(params[1]);
+static std::any randIntFunc(Array params, Stack& s) {
+    Int min = std::any_cast<Int>(params[0]);
+    Int max = std::any_cast<Int>(params[1]);
 
     return (int)(min + rand() % (max - min + 1));
 }
 
-static std::any randomFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any randomFunc(Array params, Stack& s) {
     return (float)rand() / (float)INT_MAX;
 }
 
-static std::any toStringFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any toStringFunc(Array params, Stack& s) {
     return ConvToString(params[0]);
 }
 
-static std::any toIntFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any toIntFunc(Array params, Stack& s) {
     return ConvToInt(params[0]);
 }
 
-static std::any toBoolFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any toBoolFunc(Array params, Stack& s) {
     return ConvToBool(params[0]);
 }
 
-static std::any toFloatFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any toFloatFunc(Array params, Stack& s) {
     return ConvToFloat(params[0]);
 }
 
-static std::any toArrayFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    return params;
+static std::any toArrayFunc(Array params, Stack& s) {
+    return std::any_cast<Array>(params.back());
 }
 
-static std::any inputFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    std::string s;
-    std::getline(std::cin, s);
-    return s;
+static std::any inputFunc(Array params, Stack& s) {
+    std::string k;
+    std::getline(std::cin, k);
+    return k;
 }
 
-static std::any sizeFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    if (params[0].type() == typeid(std::string))
-        return (int)(std::any_cast<std::string>(params[0]).size());
-    else if (params[0].type() == typeid(std::vector<std::any>)) {
-        return (int)(std::any_cast<std::vector<std::any>>(params[0]).size());
+static std::any sizeFunc(Array params, Stack& s) {
+    if (params[0].type() == typeid(String))
+        return (int)(std::any_cast<String>(params[0]).size());
+    else if (params[0].type() == typeid(Array)) {
+        return (int)(std::any_cast<Array>(params[0]).size());
     }
 
     throw std::runtime_error("Cannot determine Size of " + std::string(GetVarTypeString(params[0])));
@@ -118,77 +94,72 @@ static int safe_mod(int a, int b) {
     return ((a % b) + b) % b;
 }
 
-static std::any modFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any modFunc(Array params, Stack& s) {
     if (params[0].type() == typeid(float) || params[1].type() == typeid(float)) {
         float f1 = params[0].type() == typeid(float) ? std::any_cast<float>(params[0]) : ConvToFloat(params[0]);
         float f2 = params[1].type() == typeid(float) ? std::any_cast<float>(params[1]) : ConvToFloat(params[1]);
 
         return std::fmod(f1, f2);
-    } else if (params[0].type() == typeid(int) && params[1].type() == typeid(int)) {
+    } else {
         int i1 = std::any_cast<int>(params[0]);
         int i2 =  std::any_cast<int>(params[1]);
 
         return safe_mod(i1, i2);
-    } else {
-        throw std::runtime_error("Cannot find mod with types " + std::string(GetVarTypeString(params[0])) + " and " + std::string(GetVarTypeString(params[1])));
     }
 }
 
-static std::any appendFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    if (params[0].type() == typeid(std::string)) {
-        auto a = std::any_cast<std::string>(params[0]);
+static std::any appendFunc(Array params, Stack& s) {
+    if (params[0].type() == typeid(String)) {
+        auto a = std::any_cast<String>(params[0]);
 
-        std::string d = ConvToString(params[1]);
+        String d = std::any_cast<String>(params[1]);
         a.insert(a.end(), d.begin(), d.end());
 
         return a;
-    } else if (params[0].type() == typeid(std::vector<std::any>)) {
-        auto a = std::any_cast<std::vector<std::any>>(params[0]);
+    } else if (params[0].type() == typeid(Array)) {
+        auto a = std::any_cast<Array>(params[0]);
         
-        if (params[1].type() == typeid(std::vector<std::any>)) {
-            auto b = std::any_cast<std::vector<std::any>>(params[1]);
+        // If 2nd item is a array, then append items of that array to the obj
+        if (params[1].type() == typeid(Array)) {
+            auto b = std::any_cast<Array>(params[1]);
             a.insert(a.end(), b.begin(), b.end());
         } else {
             a.push_back(params[1]);
         }
 
         return a;
-    } else {
-        throw std::runtime_error("Can't append to [" + std::string(GetVarTypeString(params[0])) + "]");
     }
 
     return std::any();
 } 
 
-static std::any getFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any getFunc(Array params, Stack& s) {
     if (params[0].type() == typeid(std::string)) {
         auto a = std::any_cast<std::string>(params[0]);
-        int b = ConvToInt(params[1]);
+        Int b = std::any_cast<Int>(params[1]);
 
         return a.substr(b, 1);
-    } else if (params[0].type() == typeid(std::vector<std::any>)) {
-        auto a = std::any_cast<std::vector<std::any>>(params[0]);
-        int b = ConvToInt(params[1]);
+    } else if (params[0].type() == typeid(Array)) {
+        auto a = std::any_cast<Array>(params[0]);
+        Int b = std::any_cast<Int>(params[1]);
 
         return a.at(b);
-    } else {
-        throw std::runtime_error("Can't get [" + std::string(GetVarTypeString(params[0])) + "]");
     }
 
     return std::any();
 } 
 
-static std::any setFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
-    if (params[0].type() == typeid(std::string)) {
-        auto a = std::any_cast<std::string>(params[0]);
-        int b = ConvToInt(params[1]);
+static std::any setFunc(Array params, Stack& s) {
+    if (params[0].type() == typeid(String)) {
+        auto a = std::any_cast<String>(params[0]);
+        Int b = std::any_cast<Int>(params[1]);
 
-        std::string c = ConvToString(params[2]);
+        String c = ConvToString(params[2]);
 
         a.at(b) = c.at(0);
         return a;
-    } else if (params[0].type() == typeid(std::vector<std::any>)) {
-        auto a = std::any_cast<std::vector<std::any>>(params[0]);
+    } else if (params[0].type() == typeid(Array)) {
+        auto a = std::any_cast<Array>(params[0]);
         int b = ConvToInt(params[1]);
 
         a.at(b) = params[2];
@@ -200,13 +171,13 @@ static std::any setFunc(std::vector<std::any> params, std::vector<std::string> p
     return std::any();
 } 
 
-static std::any popFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any popFunc(Array params, Stack& s) {
     if (params[0].type() == typeid(std::string)) {
         auto a = std::any_cast<std::string>(params[0]);
         a.erase(a.size() - 1);
         return a;
-    } else if (params[0].type() == typeid(std::vector<std::any>)) {
-        auto a = std::any_cast<std::vector<std::any>>(params[0]);
+    } else if (params[0].type() == typeid(Array)) {
+        auto a = std::any_cast<Array>(params[0]);
         a.pop_back();
         return a;
     } else {
@@ -214,7 +185,7 @@ static std::any popFunc(std::vector<std::any> params, std::vector<std::string> p
     }
 }
 
-static std::any eraseFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any eraseFunc(Array params, Stack& s) {
     if (params[0].type() == typeid(std::string)) {
         auto a = std::any_cast<std::string>(params[0]);
 
@@ -224,8 +195,8 @@ static std::any eraseFunc(std::vector<std::any> params, std::vector<std::string>
         a.erase(start, n);
 
         return a;
-    } else if (params[0].type() == typeid(std::vector<std::any>)) {
-        auto a = std::any_cast<std::vector<std::any>>(params[0]);
+    } else if (params[0].type() == typeid(Array)) {
+        auto a = std::any_cast<Array>(params[0]);
         int start = ConvToInt(params[1]);
         int n = ConvToInt(params[2]);
 
@@ -236,7 +207,7 @@ static std::any eraseFunc(std::vector<std::any> params, std::vector<std::string>
     }
 }
 
-static std::any evalFunc(std::vector<std::any> params, std::vector<std::string> paramNames, Stack& s) {
+static std::any evalFunc(Array params, Stack& s) {
     TokenList tokens = Tokenizer(ConvToString(params[0]));
     ASTNodeList n = BuildAST(tokens);
     ExecAST(n, s);
@@ -244,34 +215,245 @@ static std::any evalFunc(std::vector<std::any> params, std::vector<std::string> 
     return std::any();
 }
 
-void InitGlobals(Stack& s) {
-    std::vector<std::string> oneParam = { "a" };
-    std::vector<std::string> twoParam = { "a", "b" };
-    std::vector<std::string> threeParam = { "a", "b" };
-    
-    s.setFunction("print", std::make_shared<Function>(printFunc, oneParam));
-    s.setFunction("println", std::make_shared<Function>(printlnFunc, oneParam));
-    s.setFunction("input", std::make_shared<Function>(inputFunc, std::vector<std::string>()));
+static std::any asciiFunc(Array params, Stack& s) {
+    int i = std::any_cast<int>(params[0]);
 
-    s.setFunction("int", std::make_shared<Function>(toIntFunc, oneParam));
-    s.setFunction("float", std::make_shared<Function>(toFloatFunc, oneParam));
-    s.setFunction("bool", std::make_shared<Function>(toBoolFunc, oneParam));
-    s.setFunction("string", std::make_shared<Function>(toStringFunc, oneParam));
-    s.setFunction("array", std::make_shared<Function>(toArrayFunc, oneParam));
-    
-    
-    s.setFunction("min", std::make_shared<Function>(minFunc, twoParam));
-    s.setFunction("max", std::make_shared<Function>(maxFunc, twoParam));
-    s.setFunction("mod", std::make_shared<Function>(modFunc, oneParam));
-    s.setFunction("randomInt", std::make_shared<Function>(randIntFunc, twoParam));
-    s.setFunction("random", std::make_shared<Function>(randomFunc, std::vector<std::string>()));
+    String l;
+    l.push_back((char) i);
+    return l;
+}
 
-    s.setFunction("append", std::make_shared<Function>(appendFunc, twoParam));
-    s.setFunction("get", std::make_shared<Function>(getFunc, twoParam));
-    s.setFunction("set", std::make_shared<Function>(setFunc, threeParam));
-    s.setFunction("size", std::make_shared<Function>(sizeFunc, oneParam));
-    s.setFunction("type", std::make_shared<Function>(typeFunc, oneParam));
 
-    s.setFunction("pop", std::make_shared<Function>(popFunc, oneParam));
-    s.setFunction("erase", std::make_shared<Function>(eraseFunc, threeParam));
+void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
+    auto noArgs = ExternalParameterInformation{
+        .requiredVariableTypes = std::vector<VariableType>(),
+        .hasVaArgs = false,
+        .minVaArgs = 0,
+        .maxVaArgs = 0,
+        .vaType = VariableType::ANY
+    };
+
+    auto oneRequiredAny = ExternalParameterInformation{
+        .requiredVariableTypes = std::vector<VariableType>({ VariableType::ANY }),
+        .hasVaArgs = false,
+        .minVaArgs = 0,
+        .maxVaArgs = 0,
+        .vaType = VariableType::ANY
+    };
+
+    auto twoRequiredAny = ExternalParameterInformation{
+        .requiredVariableTypes = std::vector<VariableType>({ VariableType::ANY, VariableType::ANY }),
+        .hasVaArgs = false,
+        .minVaArgs = 0,
+        .maxVaArgs = 0,
+        .vaType = VariableType::ANY
+    };
+
+    auto twoRequiredNum = ExternalParameterInformation{
+        .requiredVariableTypes = std::vector<VariableType>({ VariableType::FLOAT | VariableType::INT, VariableType::FLOAT | VariableType::INT }),
+        .hasVaArgs = false,
+        .minVaArgs = 0,
+        .maxVaArgs = 0,
+        .vaType = VariableType::ANY
+    };
+
+    auto unlimitedVaAnyNoReq = ExternalParameterInformation{
+        .requiredVariableTypes = std::vector<VariableType>({}),
+        .hasVaArgs = true,
+        .minVaArgs = 0,
+        .maxVaArgs = 999,
+        .vaType = VariableType::ANY
+    };
+
+    s.setFunction("print", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) {
+                Array vaArgs = std::any_cast<Array>(params.back());
+
+                std::string s = "";
+
+                for (int i=0; i<vaArgs.size(); i++) {
+                    s += ConvToString(vaArgs[i]);
+                    if (i != (vaArgs.size() - 1)) s += ' ';
+                }
+
+                pf(s);
+
+                return std::any();
+            },
+            unlimitedVaAnyNoReq
+        )
+    );
+
+    s.setFunction("println", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) {
+                Array vaArgs = std::any_cast<Array>(params.back());
+                std::stringstream ss;
+
+                for (int i=0; i<vaArgs.size(); i++) {
+                    ss << ConvToString(vaArgs[i]);
+                    if (i != (vaArgs.size() - 1)) ss << ' ';
+                }
+                pf(ss.str());
+                nf();
+
+                return std::any();
+            },
+            unlimitedVaAnyNoReq
+        )
+    );
+
+    s.setFunction("type", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) { return std::string(GetVarTypeString(params[0])); },
+            oneRequiredAny
+        )
+    );
+
+    s.setFunction("int", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) { return ConvToInt(params[0]); },
+            oneRequiredAny
+        )
+    );
+
+    s.setFunction("float", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) { return ConvToFloat(params[0]); },
+            oneRequiredAny
+        )
+    );
+
+    s.setFunction("bool", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) { return ConvToBool(params[0]); },
+            oneRequiredAny
+        )
+    );
+
+    s.setFunction("string", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) { return ConvToString(params[0]); },
+            oneRequiredAny
+        )
+    );
+
+    s.setFunction("array", 
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) { return ConvToBool(params[0]); },
+            unlimitedVaAnyNoReq
+        )
+    );
+    
+    s.setFunction("min", std::make_shared<Function>(minFunc, twoRequiredNum));
+    s.setFunction("max", std::make_shared<Function>(maxFunc, twoRequiredNum));
+    s.setFunction("mod", std::make_shared<Function>(modFunc, twoRequiredNum));
+    s.setFunction("randomInt", std::make_shared<Function>(randIntFunc, twoRequiredNum));
+    s.setFunction("random", std::make_shared<Function>(randomFunc, noArgs));
+
+    s.setFunction("append", 
+        std::make_shared<Function>(
+            appendFunc, 
+            ExternalParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, ANY }),
+                .hasVaArgs = false,
+                .minVaArgs = 0,
+                .maxVaArgs = 0,
+                .vaType = VariableType::ANY
+            }
+        )
+    );
+
+    s.setFunction("get", 
+        std::make_shared<Function>(
+            getFunc, 
+            ExternalParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, INT }),
+                .hasVaArgs = false,
+                .minVaArgs = 0,
+                .maxVaArgs = 0,
+                .vaType = VariableType::ANY
+            }
+        )
+    );
+
+
+    s.setFunction("set", 
+        std::make_shared<Function>(
+            setFunc,
+            ExternalParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, INT, ANY }),
+                .hasVaArgs = false,
+                .minVaArgs = 0,
+                .maxVaArgs = 0,
+                .vaType = VariableType::ANY
+            }
+        )
+    );
+
+    s.setFunction("type",
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) {
+                return String(GetVarTypeString(params[0]));
+            },
+            oneRequiredAny
+        )
+    );
+
+    s.setFunction("ascii",
+        std::make_shared<Function>(
+            [&](ParameterValueList params, Stack&) {
+                String s;
+                s.push_back((char) std::any_cast<Int>(params[0]));
+                return s;
+            },
+            ExternalParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>({ INT }),
+                .hasVaArgs = false,
+                .minVaArgs = 0,
+                .maxVaArgs = 0,
+                .vaType = VariableType::ANY
+            }
+        )
+    );
+
+    s.setFunction("pop",
+        std::make_shared<Function>(
+            popFunc, 
+            ExternalParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY }),
+                .hasVaArgs = false,
+                .minVaArgs = 0,
+                .maxVaArgs = 0,
+                .vaType = VariableType::ANY
+            }
+        )
+    );
+
+    s.setFunction("size",
+        std::make_shared<Function>(
+            sizeFunc, 
+            ExternalParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY }),
+                .hasVaArgs = false,
+                .minVaArgs = 0,
+                .maxVaArgs = 0,
+                .vaType = VariableType::ANY
+            }
+        )
+    );
+
+    s.setFunction("erase",
+        std::make_shared<Function>(
+            eraseFunc, 
+            ExternalParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, INT, INT }),
+                .hasVaArgs = false,
+                .minVaArgs = 0,
+                .maxVaArgs = 0,
+                .vaType = VariableType::ANY
+            }
+        )
+    );
 }

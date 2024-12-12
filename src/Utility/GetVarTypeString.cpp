@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+#include "Types.hpp"
+
 const char* GetVarTypeString(std::any v) {
     if (v.type() == typeid(int)) {
         return "int";
@@ -13,7 +15,7 @@ const char* GetVarTypeString(std::any v) {
         return "bool";
     } else if (v.type() == typeid(std::string)) {
         return "string";
-    } else if (v.type() == typeid(std::vector<std::any>)) {
+    } else if (v.type() == typeid(Array)) {
         return "array";
     }
 

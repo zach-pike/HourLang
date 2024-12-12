@@ -13,7 +13,8 @@ public:
     HourInterpreter();
     ~HourInterpreter();
 
-    void addGlobals();
+    void addGlobals(PrintFunction pf, NewlineFunction nf);
+    void reset();
 
     void execCode(std::string code);
     void execFile(std::filesystem::path path);
