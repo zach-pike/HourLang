@@ -6,40 +6,43 @@
 #include <cstdint>
 
 #include "Tokenizer/Tokenizer.hpp"
+#include "Types.hpp"
 
 class NoFunctionFound : public std::exception {
 private:
-    std::string unfoundFunction;
+    std::string msg;
 
 public:
-    NoFunctionFound(std::string _unfoundFunction):
-        unfoundFunction(_unfoundFunction) {}
+    NoFunctionFound(std::string unfoundFunction)  {
+            std::stringstream ss;
+            ss << "No function named \"";
+            ss << unfoundFunction;
+            ss << "\" Found on stack!";
+
+            msg = ss.str();
+        }
 
     const char* what() const noexcept override {
-        std::stringstream ss;
-        ss << "No function named \"";
-        ss << unfoundFunction;
-        ss << "\" Found on stack!";
-
-        return ss.str().c_str();
+        return msg.c_str();
     }
 };
 
 class NoVariableFound : public std::exception {
 private:
-    std::string unfoundVariable;
+    std::string msg;
 
 public:
-    NoVariableFound(std::string _unfoundVariable):
-        unfoundVariable(_unfoundVariable) {}
-
-    const char* what() const noexcept override {
+    NoVariableFound(std::string unfoundVariable) {
         std::stringstream ss;
         ss << "No variable named \"";
         ss << unfoundVariable;
         ss << "\" Found on stack!";
 
-        return ss.str().c_str();
+        msg = ss.str();
+    }
+
+    const char* what() const noexcept override {
+        return msg.c_str();
     }
 };
 
@@ -87,5 +90,56 @@ class ASTBuildPeekEndOfFile : public std::exception {
 public:
     const char* what() const noexcept override {
         return "Tried Peeking token, but reached end of file!";
+    }
+};
+
+class InvalidParameterType : public std::exception {
+private:
+    std::string msg;
+public:
+    InvalidParameterType(VariableType expected, VariableType provided) {
+        std::stringstream ss;
+
+        ss << "Invalid type: Expected [ ";
+
+        // 1 here is to skip Any type
+        for (int i=1; i<ARR_SZ(variableTypeOptions); i++) {
+            if (expected & variableTypeOptions[i]) {
+                ss << variableTypeNames[i] << ' ';
+            }
+        }
+
+        ss << "] got [";
+        for (int i=1; i<ARR_SZ(variableTypeOptions); i++) {
+            if (provided & variableTypeOptions[i]) {
+                ss << variableTypeNames[i];
+                break;
+            }
+        }
+        ss << ']';
+
+        msg = ss.str();
+    }
+
+    const char* what() const noexcept override {
+        return msg.c_str();
+    }
+};
+
+class InvalidParameterCount : public std::exception {
+private:
+    std::string msg;
+public:
+    InvalidParameterCount(size_t expected) {
+        std::stringstream ss;
+        ss << "Invalid parameter count: Expected ";
+        ss << expected;
+        ss << " parameters";
+
+        msg = ss.str();
+    }
+
+    const char* what() const noexcept override {
+        return msg.c_str();
     }
 };
