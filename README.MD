@@ -14,6 +14,18 @@
   - `string`: String Object
   - `array`: Array Object
 
+# Function calls
+All function calls copy parameters on call, so functions that modify a `string` or `array` may look like this
+```js
+function myFunc(a) {
+  return append(a, 4);
+}
+
+myarr = [1, 2, 3];
+
+myarr = myFunc(myArr);
+```
+
 # Builtin Functions
  - I/O
    - `print(v...)`: Write to stdout without printing a newline. Returns null
@@ -39,5 +51,22 @@
    - `type(v)`: Returns a `string` with the datatype of a value
    - `pop(obj)`: Pops a item off the `obj`. Returns the modified `obj`.
    - `erase(obj, start, n)`: Erase items from `obj`
+ - Misc
+   - `ascii(v)`: Returns a `string` with a single char of `v` converted via ascii
+
+## Array literal (`[]`) vs `array()`
+Array literals like `[1, 2, 3, 4]` and `["hello", "world"]` can only contain literal values like strings, numbers, and booleans so, when wanting to create a `array` with variables or variable-derrived values, use `array()`.
+
+Example:
+```js
+myarr = [1, 2, 3, 4];
+```
+vs
+```js
+a = 5;
+b = 6;
+c = 7;
+myarr = array(a*5, b-1, c+2);
+```
 
 # Examples are in `examples` folder
