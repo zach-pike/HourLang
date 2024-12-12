@@ -17,15 +17,15 @@ Function::Function(ExternalFunction f, ExternalParameterInformation p):
 
 static VariableType getVarType(std::any a) {
     if (a.type() == typeid(Int)) {
-        return INT;
+        return VariableType::INT;
     } else if (a.type() == typeid(Float)) {
-        return FLOAT;
+        return VariableType::FLOAT;
     } else if (a.type() == typeid(Bool)) {
-        return BOOL;
+        return VariableType::BOOL;
     } else if (a.type() == typeid(String)) {
-        return STRING;
+        return VariableType::STRING;
     } else if (a.type() == typeid(Array)) {
-        return ARRAY;
+        return VariableType::ARRAY;
     } else {
         throw std::runtime_error("Unknown datatype");
     }
@@ -69,7 +69,7 @@ std::any Function::callFunction(ParameterValueList parameterValues, Stack& stack
             // Get supplied type
             VariableType givenType = getVarType(argsList[i]);
 
-            if (vt != ANY && !(givenType & vt)) {
+            if (vt != VariableType::ANY && !(givenType & vt)) {
                 throw InvalidParameterType(vt, givenType);
             }
         }

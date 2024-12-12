@@ -1,5 +1,8 @@
 # The Hour programming language
 
+# How to use Interpreter frontend
+Use `Interpreter.exe --help` to get a list of commands, or use just `Interpreter.exe` to enter a REPL
+
 # Recognized keywords
  - `for`
  - `if`
@@ -68,5 +71,7 @@ b = 6;
 c = 7;
 myarr = array(a*5, b-1, c+2);
 ```
+
+
 
 # Examples are in `examples` folder

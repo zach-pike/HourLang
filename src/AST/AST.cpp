@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "Exceptions/Exceptions.hpp"
+#include "Utility/GetVarTypeString.hpp"
 
 #include "Utility/Conv.hpp"
 #include "Utility/Math.hpp"
@@ -449,12 +450,13 @@ static void printInd(int k) {
 void ASTNode::printDebug(int ind) {
     printInd(ind); std::cout << '[' << nodeNames[(int) type] << "] ";
 
-    if (type == ASTNodeType::LITERAL) {
-        std::cout << '(' << ConvToString(data) << ") {";
-    } else if (type == ASTNodeType::ASSIGN || type == ASTNodeType::VARREF || type == ASTNodeType::CALL) {
-        std::cout << '(' << std::any_cast<std::string>(data) << ") {";
-    } else {
-        std::cout << "{";
+    if (data.has_value()) {
+        std::cout
+            << "Data{ "
+            << GetVarTypeString(data)
+            << '('
+            << ConvToString(data)
+            << ") } {";
     }
 
     if (children.size() > 0) std::cout << '\n';

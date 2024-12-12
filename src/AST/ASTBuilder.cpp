@@ -477,6 +477,7 @@ void ExecAST(const ASTNodeList& list, Stack& stack) {
             // n->printDebug();
         }
     } catch (std::exception& e) {
-        std::cout << "Error! " << e.what() << '\n';
+        std::cout << "Exception thrown in execution!\n"
+                  << e.what() << '\n';
     }
 }

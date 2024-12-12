@@ -1,1 +1,1 @@
-print(max("hello", 2));
+print(max(5,2));

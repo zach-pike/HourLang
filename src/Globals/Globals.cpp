@@ -356,7 +356,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         std::make_shared<Function>(
             appendFunc, 
             ExternalParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, ANY }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::ANY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
@@ -369,7 +369,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         std::make_shared<Function>(
             getFunc, 
             ExternalParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, INT }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
@@ -383,7 +383,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         std::make_shared<Function>(
             setFunc,
             ExternalParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, INT, ANY }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT, VariableType::ANY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
@@ -409,7 +409,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
                 return s;
             },
             ExternalParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ INT }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::INT }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
@@ -422,7 +422,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         std::make_shared<Function>(
             popFunc, 
             ExternalParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
@@ -435,7 +435,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         std::make_shared<Function>(
             sizeFunc, 
             ExternalParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
@@ -448,7 +448,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         std::make_shared<Function>(
             eraseFunc, 
             ExternalParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ STRING | ARRAY, INT, INT }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT, VariableType::INT }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,

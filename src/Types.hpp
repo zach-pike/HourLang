@@ -3,10 +3,11 @@
 #include <vector>
 #include <any>
 #include <functional>
+#include <cstdint>
 
 #define ARR_SZ(a) (sizeof(a)/sizeof(a[0]))
 
-enum VariableType {
+enum class VariableType : std::uint16_t {
     ANY = 0,
     INT = 1,
     FLOAT = 2,
@@ -16,12 +17,12 @@ enum VariableType {
 };
 
 constexpr VariableType variableTypeOptions[] = {
-    ANY,
-    INT,
-    FLOAT,
-    BOOL,
-    STRING,
-    ARRAY
+    VariableType::ANY,
+    VariableType::INT,
+    VariableType::FLOAT,
+    VariableType::BOOL,
+    VariableType::STRING,
+    VariableType::ARRAY
 };
 
 constexpr const char* variableTypeNames[] = {
@@ -38,6 +39,10 @@ inline VariableType operator|(VariableType lhs, VariableType rhs) {
         static_cast<unsigned int>(lhs) | static_cast<unsigned int>(rhs));
 }
 
+inline bool operator&(VariableType lhs, VariableType rhs) {
+    return static_cast<bool>(
+        static_cast<unsigned int>(lhs) & static_cast<unsigned int>(rhs));
+}
 
 using Int = int;
 using Float = float;

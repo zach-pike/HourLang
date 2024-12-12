@@ -98,14 +98,23 @@ private:
     std::string msg;
 public:
     InvalidParameterType(VariableType expected, VariableType provided) {
-        std::stringstream ss;
-
-        ss << "Invalid type: Expected [ ";
+        std::vector<int> types;
 
         // 1 here is to skip Any type
         for (int i=1; i<ARR_SZ(variableTypeOptions); i++) {
             if (expected & variableTypeOptions[i]) {
-                ss << variableTypeNames[i] << ' ';
+                types.push_back(i);
+            }
+        }
+
+        std::stringstream ss;
+        ss << "Invalid type: Expected [";
+
+        for (int i=0; i<types.size(); i++) {
+            ss << variableTypeNames[types[i]];
+
+            if (i != (types.size() - 1)) {
+                ss << " or ";
             }
         }
 
