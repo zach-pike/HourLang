@@ -1,33 +1,6 @@
 #include "Interpreter/Interpreter.hpp"
 
 #include "CLI11.hpp"
-
-#ifdef Emscripten
-
-extern void outputFunc(std::string s);
-extern void newline(std::string s);
-
-HourInterpreter interp;
-
-extern "C" execCode(std::string c) {
-    interp.execCode(c);
-}
-
-extern "C" resetInterpreter() {
-    interp.reset();
-    interp.addGlobals(outputFunc, newline);
-}
-
-int main() {
-    resetInterpreter();
-
-    return 0;
-}
-
-#endif
-
-#ifndef Emscripten
-
 #include <iostream>
 
 
@@ -101,4 +74,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-#endif
