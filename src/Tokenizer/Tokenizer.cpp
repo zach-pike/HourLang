@@ -87,6 +87,7 @@ TokenList Tokenizer(std::string code) {
     TokenList tokenList;
     std::string accumulator = "";
     bool stringMode = false;
+    bool commentMode = false;
 
     auto processAccumulator = [&](bool skip) {
         if (stringMode) {
@@ -119,6 +120,17 @@ TokenList Tokenizer(std::string code) {
     };
 
     for(std::size_t i=0; i<code.size(); i++) {
+
+        if (!commentMode && code[i] == '/' && (i+1) < code.size() && code[i+1] == '/') {
+            commentMode = true;
+        }
+
+        if (commentMode && code[i] == '\n') {
+            commentMode = false;
+        }
+
+        if (commentMode) continue;
+
         if (isspace(code[i]) && !stringMode) continue;
 
         accumulator += code[i];
