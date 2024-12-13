@@ -1,3 +1,5 @@
-import Math;
+import test2;
 
-println(type(1 + 1.5));
+// Hello world
+
+myTestFunc("aaaa");

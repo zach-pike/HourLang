@@ -34,6 +34,9 @@ int main(int argc, char** argv) {
 
     // Interpret function
     if (interpret->count() > 0) {
+        std::filesystem::path fileDir = std::filesystem::absolute(std::filesystem::path(file)).parent_path();
+        interp.getStack().addModulePath(fileDir);
+
         interp.execFile(file);
 
         exit(0);

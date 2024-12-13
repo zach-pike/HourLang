@@ -1,6 +1,9 @@
 #include "Stack.hpp"
 #include "Modules/ExternalModule/ExternalModule.hpp"
 #include "Exceptions/Exceptions.hpp"
+#include "Utility/ReadTextFile.hpp"
+#include "AST/ASTBuilder.hpp"
+
 
 #include <iostream>
 #include <assert.h>
@@ -47,43 +50,53 @@ void Stack::import(std::string name) {
     }
 
     if (!foundModule) throw ModuleNotFound(name);
+
+    std::string modulePathStr = modulePath.u8string();
     
-    std::string modulePathStr = std::filesystem::absolute(modulePath).u8string();
-    HMODULE library = LoadLibrary(modulePathStr.c_str());
+    if (modulePath.extension() == "dll") {
+        HMODULE library = LoadLibrary(modulePathStr.c_str());
 
-    ModuleMainFunc moduleMain = (ModuleMainFunc)GetProcAddress(library, "moduleMain");
-    GetModuleFunctionsFunc functions = (GetModuleFunctionsFunc) GetProcAddress(library, "getModuleFunctions");
+        ModuleMainFunc moduleMain = (ModuleMainFunc)GetProcAddress(library, "moduleMain");
+        GetModuleFunctionsFunc functions = (GetModuleFunctionsFunc) GetProcAddress(library, "getModuleFunctions");
 
-    // Initialize Module 
-    // Call module main
-    moduleMain(*this);
+        // Initialize Module 
+        // Call module main
+        moduleMain(*this);
 
-    // Next load the list of functions
-    ModuleFunctionList info = functions();
+        // Next load the list of functions
+        ModuleFunctionList info = functions();
 
-    for (auto& func : info) {
-        void* f = (void*) GetProcAddress(library, func.symbolName.c_str());
+        for (auto& func : info) {
+            void* f = (void*) GetProcAddress(library, func.symbolName.c_str());
 
-        if (f == nullptr) {
-            throw std::runtime_error("Could not load function \"" + func.symbolName + "\"");
+            if (f == nullptr) {
+                throw std::runtime_error("Could not load function \"" + func.symbolName + "\"");
+            }
+
+            setFunction(
+                func.functionName,
+                std::make_shared<Function>(
+                    (std::any(*)(ParameterValueList, Stack&)) f,
+                    func.paramInfo
+                )    
+            );
         }
 
-        setFunction(
-            func.functionName,
-            std::make_shared<Function>(
-                (std::any(*)(ParameterValueList, Stack&)) f,
-                func.paramInfo
-            )    
+        loadedModules.push_back(
+            LoadedModule{
+                .moduleName = name,
+                .loadedFunctions = info,
+                .libraryHandle = (void*) library
+            }
         );
-    }
+    } else {
+        // Try and read as text and exec file
+        std::string text = ReadTextFile(modulePathStr);
+        TokenList tokens = Tokenizer(text);
+        ASTNodeList nodes = BuildAST(tokens);
 
-    loadedModules.push_back(
-        LoadedModule{
-            .moduleName = name,
-            .loadedFunctions = info,
-            .libraryHandle = (void*) library
-        }
-    );
+        ExecAST(nodes, *this);
+    }
 }
 
 void Stack::addModulePath(std::filesystem::path path) {

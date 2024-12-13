@@ -4,7 +4,7 @@
 #include "AST/ASTBuilder.hpp"
 #include "Globals/Globals.hpp"
 
-#include "Utility/ReadFile.hpp"
+#include "Utility/ReadTextFile.hpp"
 
 HourInterpreter::HourInterpreter() {}
 HourInterpreter::~HourInterpreter() {}
@@ -67,7 +67,7 @@ void HourInterpreter::execCode(std::string code) {
 }
 
 void HourInterpreter::execFile(std::filesystem::path path)  {
-    std::string fileCode = ReadFile(path);
+    std::string fileCode = ReadTextFile(path);
 
     execCode(fileCode);
 }
