@@ -37,7 +37,11 @@ enum class ASTNodeType {
     MUL_ASSIGN = 22,
     DIV_ASSIGN = 23,
 
-    IMPORT = 24
+    IMPORT = 24,
+
+    NOT = 25,
+
+    NEGATIVE = 26
 };
 
 constexpr const char* nodeNames[] = {
@@ -72,6 +76,8 @@ constexpr const char* nodeNames[] = {
     "DIV_ASSIGN",
 
     "IMPORT",
+
+    "NOT"
 };
 
 struct ASTFunctionDefInfo {

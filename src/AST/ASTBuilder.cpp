@@ -348,6 +348,27 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
                 )
             );
 
+    } else if (PeekToken(tokens, current, 0).type == TokenType::NOT) {
+        ExpectToken(tokens, current, TokenType::NOT);
+
+        // NOT expression 
+        // Get expression to the right
+        auto rhs = ParseExpression(tokens, current);
+
+        return std::make_shared<ASTNode>(
+            ASTNodeType::NOT,
+            ASTNodeList { rhs }
+        );
+    } else if (PeekToken(tokens, current, 0).type == TokenType::SUBTRACT) {
+        ExpectToken(tokens, current, TokenType::SUBTRACT);
+        auto child = ParseExpression(tokens, current);
+
+        return checkLeft(
+            std::make_shared<ASTNode>(
+                ASTNodeType::NEGATIVE,
+                ASTNodeList { child }
+            )
+        );
     } else {
         std::string literal = ExpectToken(tokens, current, TokenType::LITERAL);
         

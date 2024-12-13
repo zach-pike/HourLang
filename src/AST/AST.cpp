@@ -42,19 +42,19 @@ std::any ASTNode::getValue(Stack& stack) {
             auto lhs = children[0]->getValue(stack);
             auto rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) && rhs.type() == typeid(std::string)) {
-                std::string s1 = std::any_cast<std::string>(lhs);
-                std::string s2 =  std::any_cast<std::string>(rhs);
+            if (lhs.type() == typeid(String) && rhs.type() == typeid(String)) {
+                String s1 = std::any_cast<String>(lhs);
+                String s2 =  std::any_cast<String>(rhs);
 
                 return s1 == s2;
-            } else if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = std::any_cast<float>(lhs);
-                float f2 =  std::any_cast<float>(rhs);
+            } else if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+                Float f1 = ConvToFloat(lhs);
+                Float f2 = ConvToFloat(rhs);
 
                 return f1 == f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = std::any_cast<int>(lhs);
-                int i2 = std::any_cast<int>(rhs);
+            } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+                Int i1 = std::any_cast<Int>(lhs);
+                Int i2 = std::any_cast<Int>(rhs);
 
                 return i1 == i2;
             } else {
@@ -67,19 +67,19 @@ std::any ASTNode::getValue(Stack& stack) {
             auto lhs = children[0]->getValue(stack);
             auto rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) && rhs.type() == typeid(std::string)) {
-                std::string s1 = std::any_cast<std::string>(lhs);
-                std::string s2 =  std::any_cast<std::string>(rhs);
+            if (lhs.type() == typeid(String) && rhs.type() == typeid(String)) {
+                String s1 = std::any_cast<String>(lhs);
+                String s2 =  std::any_cast<String>(rhs);
 
                 return s1 != s2;
-            } else if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = std::any_cast<float>(lhs);
-                float f2 =  std::any_cast<float>(rhs);
+            } else if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+                Float f1 = ConvToFloat(lhs);
+                Float f2 = ConvToFloat(rhs);
 
                 return f1 != f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = std::any_cast<int>(lhs);
-                int i2 = std::any_cast<int>(rhs);
+            } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+                Int i1 = std::any_cast<Int>(lhs);
+                Int i2 = std::any_cast<Int>(rhs);
 
                 return i1 != i2;
             } else {
@@ -92,23 +92,23 @@ std::any ASTNode::getValue(Stack& stack) {
             auto lhs = children[0]->getValue(stack);
             auto rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) && rhs.type() == typeid(std::string)) {
-                std::string s1 = std::any_cast<std::string>(lhs);
-                std::string s2 =  std::any_cast<std::string>(rhs);
+            if (lhs.type() == typeid(String) && rhs.type() == typeid(String)) {
+                String s1 = std::any_cast<String>(lhs);
+                String s2 =  std::any_cast<String>(rhs);
 
                 return s1 < s2;
-            } else if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = std::any_cast<float>(lhs);
-                float f2 =  std::any_cast<float>(rhs);
+            } else if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+                Float f1 = ConvToFloat(lhs);
+                Float f2 =  ConvToFloat(rhs);
 
                 return f1 < f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = std::any_cast<int>(lhs);
-                int i2 = std::any_cast<int>(rhs);
+            } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+                Int i1 = std::any_cast<Int>(lhs);
+                Int i2 = std::any_cast<Int>(rhs);
 
                 return i1 < i2;
             } else {
-                throw std::runtime_error("Cannot compare with presented types!");
+                throw std::runtime_error("Cannot compare with presented types! lt");
             }
         } break;
 
@@ -117,23 +117,23 @@ std::any ASTNode::getValue(Stack& stack) {
             auto lhs = children[0]->getValue(stack);
             auto rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) && rhs.type() == typeid(std::string)) {
-                std::string s1 = std::any_cast<std::string>(lhs);
-                std::string s2 =  std::any_cast<std::string>(rhs);
+            if (lhs.type() == typeid(String) && rhs.type() == typeid(String)) {
+                String s1 = std::any_cast<String>(lhs);
+                String s2 =  std::any_cast<String>(rhs);
 
                 return s1 > s2;
-            } else if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = std::any_cast<float>(lhs);
-                float f2 =  std::any_cast<float>(rhs);
+            } else if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+                Float f1 = ConvToFloat(lhs);
+                Float f2 = ConvToFloat(rhs);
 
                 return f1 > f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = std::any_cast<int>(lhs);
-                int i2 = std::any_cast<int>(rhs);
+            } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+                Int i1 = std::any_cast<Int>(lhs);
+                Int i2 = std::any_cast<Int>(rhs);
 
                 return i1 > i2;
             } else {
-                throw std::runtime_error("Cannot compare with presented types!");
+                throw std::runtime_error("Cannot compare with presented types! gt");
             }
         } break;
 
@@ -142,23 +142,23 @@ std::any ASTNode::getValue(Stack& stack) {
             auto lhs = children[0]->getValue(stack);
             auto rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) && rhs.type() == typeid(std::string)) {
-                std::string s1 = std::any_cast<std::string>(lhs);
-                std::string s2 =  std::any_cast<std::string>(rhs);
+            if (lhs.type() == typeid(String) && rhs.type() == typeid(String)) {
+                String s1 = std::any_cast<String>(lhs);
+                String s2 =  std::any_cast<String>(rhs);
 
                 return s1 <= s2;
-            } else if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = std::any_cast<float>(lhs);
-                float f2 =  std::any_cast<float>(rhs);
+            } else if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+                Float f1 = ConvToFloat(lhs);
+                Float f2 = ConvToFloat(rhs);
 
                 return f1 <= f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = std::any_cast<int>(lhs);
-                int i2 = std::any_cast<int>(rhs);
+            } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+                Int i1 = std::any_cast<Int>(lhs);
+                Int i2 = std::any_cast<Int>(rhs);
 
                 return i1 <= i2;
             } else {
-                throw std::runtime_error("Cannot compare with presented types!");
+                throw std::runtime_error("Cannot compare with presented types! lte " + String(GetVarTypeString(lhs)));
             }
         } break;
 
@@ -167,23 +167,23 @@ std::any ASTNode::getValue(Stack& stack) {
             auto lhs = children[0]->getValue(stack);
             auto rhs = children[1]->getValue(stack);
 
-            if (lhs.type() == typeid(std::string) && rhs.type() == typeid(std::string)) {
-                std::string s1 = std::any_cast<std::string>(lhs);
-                std::string s2 =  std::any_cast<std::string>(rhs);
+            if (lhs.type() == typeid(String) && rhs.type() == typeid(String)) {
+                String s1 = std::any_cast<String>(lhs);
+                String s2 =  std::any_cast<String>(rhs);
 
                 return s1 >= s2;
-            } else if (lhs.type() == typeid(float) && rhs.type() == typeid(float)) {
-                float f1 = std::any_cast<float>(lhs);
-                float f2 =  std::any_cast<float>(rhs);
+            } else if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+                Float f1 = ConvToFloat(lhs);
+                Float f2 = ConvToFloat(rhs);
 
                 return f1 >= f2;
-            } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-                int i1 = std::any_cast<int>(lhs);
-                int i2 = std::any_cast<int>(rhs);
+            } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+                Int i1 = std::any_cast<Int>(lhs);
+                Int i2 = std::any_cast<Int>(rhs);
 
                 return i1 >= i2;
             } else {
-                throw std::runtime_error("Cannot compare with presented types!");
+                throw std::runtime_error("Cannot compare with presented types! gte " + String(GetVarTypeString(lhs)));
             }
         } break;
 
@@ -443,7 +443,31 @@ std::any ASTNode::getValue(Stack& stack) {
             std::string fName = std::any_cast<std::string>(data);
 
             stack.import(fName);
+
+            return std::any();
         }
+
+        case ASTNodeType::NOT: {
+            assert(children.size() == 1);
+            return !ConvToBool(children[0]->getValue(stack));
+        } break;
+
+        case ASTNodeType::NEGATIVE: {
+            assert(children.size() == 1);
+            auto val = children[0]->getValue(stack);
+
+            if (val.type() == typeid(Float)) {
+                Float f = std::any_cast<Float>(val);
+
+                return -f;
+            } else if (val.type() == typeid(Int)) {
+                Int i = std::any_cast<Int>(val);
+
+                return -i;
+            }
+
+            throw std::runtime_error("Cannot negate " + std::string(GetVarTypeString(val)));
+        } break;
     }
 
     return std::any();

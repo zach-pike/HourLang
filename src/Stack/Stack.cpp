@@ -53,7 +53,7 @@ void Stack::import(std::string name) {
 
     std::string modulePathStr = modulePath.u8string();
     
-    if (modulePath.extension() == "dll") {
+    if (modulePath.extension() == ".dll") {
         HMODULE library = LoadLibrary(modulePathStr.c_str());
 
         ModuleMainFunc moduleMain = (ModuleMainFunc)GetProcAddress(library, "moduleMain");

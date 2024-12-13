@@ -44,6 +44,7 @@ TokenMap GetTokenMap() {
 
         { "return", TokenType::RETURN },
         { "import", TokenType::IMPORT },
+        { "not", TokenType::NOT },
     };
 
     return tokens;
