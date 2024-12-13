@@ -71,7 +71,7 @@ constexpr const char* nodeNames[] = {
     "MUL_ASSIGN",
     "DIV_ASSIGN",
 
-    "NO",
+    "IMPORT",
 };
 
 struct ASTFunctionDefInfo {
