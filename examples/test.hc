@@ -1,3 +1,3 @@
 import Math;
 
-println(type(mod(1, 3)));
+println(type(1 + 1.5));

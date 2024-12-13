@@ -31,6 +31,8 @@ void Stack::import(std::string name) {
     bool foundModule = false;
     std::filesystem::path modulePath;
     for (auto& searchPath : moduleSearchPaths) {
+        if (!std::filesystem::is_directory(searchPath)) throw std::runtime_error(searchPath.string() + " is not a directory!");
+
         for (auto item : std::filesystem::directory_iterator(searchPath)) {
             if (item.is_directory()) continue;
 
