@@ -1,3 +1,5 @@
+import Math;
+
 function collatz(n) {
     i = 0;
     while (n > 1) {

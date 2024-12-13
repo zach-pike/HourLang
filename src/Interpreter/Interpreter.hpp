@@ -17,7 +17,7 @@ public:
 
     void setDebugLevel(int level);
 
-    void addGlobals(PrintFunction pf, NewlineFunction nf);
+    void addGlobals();
     void reset();
 
     Stack& getStack();

@@ -1,3 +1,6 @@
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+
 #include "Modules/ExternalModule/ExternalModule.hpp"
 #include "Utility/Conv.hpp"
 
@@ -126,3 +129,5 @@ extern "C" {
         return funcs;
     }
 }
+
+#pragma GCC pop_options

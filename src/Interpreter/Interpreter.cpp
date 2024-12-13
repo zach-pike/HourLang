@@ -13,8 +13,8 @@ void HourInterpreter::setDebugLevel(int dbg) {
     level = dbg;
 }
 
-void HourInterpreter::addGlobals(PrintFunction pf, NewlineFunction nf) {
-    InitGlobals(stack, pf, nf);
+void HourInterpreter::addGlobals() {
+    InitGlobals(stack);
 }
 
 void HourInterpreter::reset() {

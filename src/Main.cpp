@@ -30,13 +30,6 @@ int main() {
 
 #include <iostream>
 
-void print(std::string s) {
-    std::cout << s;
-}
-
-void newline() {
-    std::cout << '\n';
-}
 
 int main(int argc, char** argv) {
     CLI::App app{"Hour Language Interpreter"};
@@ -54,7 +47,7 @@ int main(int argc, char** argv) {
 
     HourInterpreter interp;
     interp.setDebugLevel(debugLevel);
-    interp.addGlobals(print, newline);
+    interp.addGlobals();
 
     // Add default library folder
     interp.getStack().addModulePath(std::filesystem::current_path() / "libraries");
@@ -66,12 +59,16 @@ int main(int argc, char** argv) {
         interp.getStack().addModulePath(fp);
     }
 
+    // Interpret function
     if (interpret->count() > 0) {
         interp.execFile(file);
 
         exit(0);
     }
+    
+    // If we get here then we are not interpreting any files, therefore we will start a repl
 
+    // Exit function
     interp.getStack().setFunction(
         "exit",
         std::make_shared<Function>(
@@ -87,6 +84,7 @@ int main(int argc, char** argv) {
         )    
     );
 
+    // Welcome message
     std::cout << "Entering REPL\n";
     std::cout << "Type exit() to quit!\n";
     std::cout << "Semicolons are required!\n\n";

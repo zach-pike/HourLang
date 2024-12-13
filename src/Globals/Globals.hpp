@@ -2,4 +2,4 @@
 
 #include "Stack/Stack.hpp"
 
-void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf);
+void InitGlobals(Stack& s);

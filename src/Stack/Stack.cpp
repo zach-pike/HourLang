@@ -60,10 +60,16 @@ void Stack::import(std::string name) {
     ModuleFunctionList info = functions();
 
     for (auto& func : info) {
+        void* f = (void*) GetProcAddress(library, func.symbolName.c_str());
+
+        if (f == nullptr) {
+            throw std::runtime_error("Could not load function \"" + func.symbolName + "\"");
+        }
+
         setFunction(
             func.functionName,
             std::make_shared<Function>(
-                (std::any(*)(ParameterValueList, Stack&)) GetProcAddress(library, func.symbolName.c_str()),
+                (std::any(*)(ParameterValueList, Stack&)) f,
                 func.paramInfo
             )    
         );

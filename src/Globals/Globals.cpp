@@ -167,7 +167,7 @@ static std::any asciiFunc(Array params, Stack& s) {
 }
 
 
-void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
+void InitGlobals(Stack& s) {
     auto noArgs = ExternalFunctionParameterInformation{
         .requiredVariableTypes = std::vector<VariableType>(),
         .hasVaArgs = false,
@@ -220,7 +220,7 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
                     if (i != (vaArgs.size() - 1)) s += ' ';
                 }
 
-                pf(s);
+                std::cout << s;
 
                 return std::any();
             },
@@ -232,14 +232,13 @@ void InitGlobals(Stack& s, PrintFunction& pf, NewlineFunction& nf) {
         std::make_shared<Function>(
             [&](ParameterValueList params, Stack&) {
                 Array vaArgs = std::any_cast<Array>(params.back());
-                std::stringstream ss;
+                std::string s = "";
 
                 for (int i=0; i<vaArgs.size(); i++) {
-                    ss << ConvToString(vaArgs[i]);
-                    if (i != (vaArgs.size() - 1)) ss << ' ';
+                    s += ConvToString(vaArgs[i]);
+                    if (i != (vaArgs.size() - 1)) s += ' ';
                 }
-                pf(ss.str());
-                nf();
+                std::cout << s << '\n';
 
                 return std::any();
             },
