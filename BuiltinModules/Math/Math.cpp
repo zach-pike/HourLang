@@ -27,6 +27,20 @@ extern "C" {
         }
     }
 
+    std::any absFunc(Array params, Stack& s) {
+        if (params[0].type() == typeid(Float)) {
+            Float f = std::any_cast<Float>(params[0]);
+
+            return std::fabs(f);
+        } else if (params[0].type() == typeid(Int)) {
+            Int f = std::any_cast<Int>(params[0]);
+
+            return std::abs(f);
+        }
+
+        return std::any();
+    }
+
     std::any minFunc(Array params, Stack& s) {
         if (params[0].type() == typeid(float) || params[1].type() == typeid(float)) {
             float f1 = ConvToFloat(params[0]);
@@ -69,7 +83,7 @@ extern "C" {
     }
 
     void moduleMain(Stack& s) {
-        // std::cout << "Math module initalized\n";
+        std::cout << "Math module initalized\n";
     }
 
     std::vector<ModuleFunction> getModuleFunctions() {
@@ -79,6 +93,15 @@ extern "C" {
             .functionName = "mod",
             .paramInfo = ExternalFunctionParameterInformation {
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::INT | VariableType::FLOAT, VariableType::INT | VariableType::FLOAT }),
+                .hasVaArgs = false
+            }
+        };
+
+        ModuleFunction abs{
+            .symbolName = "absFunc",
+            .functionName = "abs",
+            .paramInfo = ExternalFunctionParameterInformation {
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::INT | VariableType::FLOAT }),
                 .hasVaArgs = false
             }
         };
@@ -121,6 +144,7 @@ extern "C" {
 
         std::vector<ModuleFunction> funcs;
         funcs.push_back(mod);
+        funcs.push_back(abs);
         funcs.push_back(min);
         funcs.push_back(max);
         funcs.push_back(randInt);

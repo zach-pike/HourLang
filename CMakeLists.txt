@@ -19,5 +19,15 @@ set_target_properties(Math PROPERTIES
     PREFIX ""
 )
 
+add_library(Raylib SHARED BuiltinModules/Raylib/Raylib.cpp)
+target_link_directories(Raylib PUBLIC BuiltinModules/Raylib)
+target_link_libraries(Raylib Utility raylib winmm)
+
+
+set_target_properties(Raylib PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/libraries"
+    PREFIX ""
+)
+
 add_executable(Interpreter ${INTERP_SRC})
 target_link_libraries(Interpreter Utility)
