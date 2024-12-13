@@ -1,7 +1,7 @@
-#include "ReadFile.hpp"
+#include "ReadTextFile.hpp"
 
 
-std::string ReadFile(std::filesystem::path path) {
+std::string ReadTextFile(std::filesystem::path path) {
     std::ifstream file(path);
     if (!file.is_open()) throw std::runtime_error("Couldn't open file");
 

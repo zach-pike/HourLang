@@ -5,4 +5,4 @@
 #include <sstream>
 #include <filesystem>
 
-std::string ReadFile(std::filesystem::path path);
+std::string ReadTextFile(std::filesystem::path path);
