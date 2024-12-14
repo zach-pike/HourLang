@@ -270,7 +270,7 @@ static std::shared_ptr<ASTNode> ParseFunction(const TokenList& tokens, std::size
 }
 
 static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::size_t& current) {
-    auto checkLeft = [&](std::shared_ptr<ASTNode> lhs) {
+    auto checkRight = [&](std::shared_ptr<ASTNode> lhs) {
         Token nextToken = PeekToken(tokens, current, 0);
 
         if (!IsExpressionToken(nextToken)) {
@@ -312,7 +312,7 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
         std::string content = ExpectToken(tokens, current, TokenType::LITERAL);
         ExpectToken(tokens, current, TokenType::DQUOTE);
 
-        return checkLeft(
+        return checkRight(
             std::make_shared<ASTNode>(
                 ASTNodeType::LITERAL,
                 ASTNodeList{},
@@ -340,7 +340,7 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
 
         ExpectToken(tokens, current, TokenType::RIGHT_BRACKET);
 
-        return checkLeft(
+        return checkRight(
                 std::make_shared<ASTNode>(
                     ASTNodeType::LITERAL,
                     ASTNodeList {},
@@ -363,12 +363,20 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
         ExpectToken(tokens, current, TokenType::SUBTRACT);
         auto child = ParseExpression(tokens, current);
 
-        return checkLeft(
+        return checkRight(
             std::make_shared<ASTNode>(
                 ASTNodeType::NEGATIVE,
                 ASTNodeList { child }
             )
         );
+    } else if (PeekToken(tokens, current, 0).type == TokenType::LEFT_PAREN) {
+        ExpectToken(tokens, current, TokenType::LEFT_PAREN);
+
+        auto parenExpr = ParseExpression(tokens, current);
+
+        ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
+
+        return checkRight(parenExpr);
     } else {
         std::string literal = ExpectToken(tokens, current, TokenType::LITERAL);
         
@@ -387,7 +395,7 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
 
             ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
 
-            return checkLeft(
+            return checkRight(
                 std::make_shared<ASTNode>(
                     ASTNodeType::CALL,
                     params,
@@ -397,7 +405,7 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
         } else {
             auto v = StringToValue(literal);
 
-            return checkLeft(
+            return checkRight(
                 std::make_shared<ASTNode>(
                     v.has_value() ? ASTNodeType::LITERAL : ASTNodeType::VARREF,
                     ASTNodeList{},
