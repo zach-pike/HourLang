@@ -6,11 +6,14 @@
 
 #include <iostream>
 #include <cmath>
-
+#include <random>
 
 static int safe_mod(int a, int b) {
     return ((a % b) + b) % b;
 }
+
+static std::random_device randDev;
+static std::mt19937 rng(randDev());
 
 extern "C" {
     std::any modFunc(Array params, Stack& s) {
@@ -36,6 +39,20 @@ extern "C" {
             Int f = std::any_cast<Int>(params[0]);
 
             return std::abs(f);
+        }
+
+        return std::any();
+    }
+
+    std::any sqrtFunc(Array params, Stack& s) {
+        if (params[0].type() == typeid(Float)) {
+            Float f = std::any_cast<Float>(params[0]);
+
+            return std::sqrtf(f);
+        } else if (params[0].type() == typeid(Int)) {
+            Int f = std::any_cast<Int>(params[0]);
+
+            return (Int) std::sqrt(f);
         }
 
         return std::any();
@@ -73,18 +90,18 @@ extern "C" {
         Int min = std::any_cast<Int>(params[0]);
         Int max = std::any_cast<Int>(params[1]);
 
-        return (int)(min + rand() % (max - min + 1));
+        std::uniform_int_distribution<std::mt19937::result_type> dist(min, max);
+
+        return (Int) dist(rng);
     }
 
     std::any randomFunc(Array params, Stack& s) {
-        srand(time(nullptr));
+        std::uniform_real_distribution<> dist(0.0, 1.0);
 
-        return (float)rand() / (float)INT_MAX;
+        return (Float) dist(rng);
     }
 
-    void moduleMain(Stack& s) {
-        std::cout << "Math module initalized\n";
-    }
+    void moduleMain(Stack& s) {}
 
     std::vector<ModuleFunction> getModuleFunctions() {
         // Module functions
@@ -100,6 +117,15 @@ extern "C" {
         ModuleFunction abs{
             .symbolName = "absFunc",
             .functionName = "abs",
+            .paramInfo = ExternalFunctionParameterInformation {
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::INT | VariableType::FLOAT }),
+                .hasVaArgs = false
+            }
+        };
+
+        ModuleFunction sqrt{
+            .symbolName = "sqrtFunc",
+            .functionName = "sqrt",
             .paramInfo = ExternalFunctionParameterInformation {
                 .requiredVariableTypes = std::vector<VariableType>({ VariableType::INT | VariableType::FLOAT }),
                 .hasVaArgs = false
@@ -148,6 +174,7 @@ extern "C" {
         funcs.push_back(min);
         funcs.push_back(max);
         funcs.push_back(randInt);
+        funcs.push_back(sqrt);
         funcs.push_back(random);
         
         return funcs;
