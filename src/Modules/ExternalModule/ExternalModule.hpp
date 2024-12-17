@@ -22,3 +22,18 @@ extern "C" {
 
 using ModuleMainFunc = void(*)(Stack&);
 using GetModuleFunctionsFunc = ModuleFunctionList(*)();
+
+#define MODULE_EXPORT(functionList, functionName, symbolName, requiredParams) { \
+    functionList.push_back( \
+        ModuleFunction { \
+            symbolName, \
+            functionName, \
+            ExternalFunctionParameterInformation { \
+                requiredParams, \
+                false \
+            } \
+        } \
+    ); \
+} 
+
+#define PARAM_TYPES(v...) std::vector<VariableType>({ v })
