@@ -10,6 +10,7 @@
 #include "Utility/Conv.hpp"
 #include "Utility/Math.hpp"
 
+#include "ASTBuilder.hpp"
 
 ASTNode::ASTNode(ASTNodeType _type):
     type(_type) {}
@@ -468,6 +469,28 @@ std::any ASTNode::getValue(Stack& stack) {
 
             throw std::runtime_error("Cannot negate " + std::string(GetVarTypeString(val)));
         } break;
+
+        case ASTNodeType::ARRAY_LITERAL: {
+            Array a;
+
+            for (auto& c : children) {
+                a.push_back(c->getValue(stack));
+            }
+
+            return a;
+        } break;
+
+        case ASTNodeType::DICT_LITERAL: {
+            auto a = std::any_cast<ASTDictLiteralInfo>(data);
+
+            Dict d;
+
+            for (auto& c : a) {
+                d.insert({ c.first, c.second->getValue(stack) });
+            }
+
+            return d;
+        } break;
     }
 
     return std::any();
@@ -498,4 +521,16 @@ void ASTNode::printDebug(int ind) {
 
     if (children.size() > 0) printInd(ind);
     std::cout << "}\n";
+}
+
+void ExecAST(const ASTNodeList& list, Stack& stack) {
+    try {
+        for (const auto& n : list) {
+            n->getValue(stack);
+            // n->printDebug();
+        }
+    } catch (std::exception& e) {
+        std::cout << "Exception thrown in execution!\n"
+                  << e.what() << '\n';
+    }
 }

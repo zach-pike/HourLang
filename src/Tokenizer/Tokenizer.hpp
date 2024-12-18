@@ -20,37 +20,39 @@ enum class TokenType {
 
     COMMA = 7,
     SEMICOLON = 8,
-    SQUOTE = 9,
-    DQUOTE = 10,
-    ASSIGN = 11,
+    COLON = 9,
+    SQUOTE = 10,
+    DQUOTE = 11,
+    PERIOD = 12,
+    ASSIGN = 13,
 
-    CMP_EQ = 12,
-    CMP_NEQ = 13,
-    CMP_LT = 14,
-    CMP_GT = 15,
-    CMP_LTE = 16,
-    CMP_GTE = 17,
+    CMP_EQ = 14,
+    CMP_NEQ = 15,
+    CMP_LT = 16,
+    CMP_GT = 17,
+    CMP_LTE = 18,
+    CMP_GTE = 19,
 
-    FOR = 18,
-    WHILE = 19,
-    IF = 20,
-    ELSE = 21,
-    FUNCTION = 22,
-    RETURN = 23,
+    FOR = 20,
+    WHILE = 21,
+    IF = 22,
+    ELSE = 23,
+    FUNCTION = 24,
+    RETURN = 25,
 
-    ADD = 24,
-    SUBTRACT = 25,
-    MULTIPLY = 26,
-    DIVIDE = 27,
+    ADD = 26,
+    SUBTRACT = 27,
+    MULTIPLY = 28,
+    DIVIDE = 29,
 
-    ASSIGN_ADD = 28,
-    ASSIGN_SUBTRACT = 29,
-    ASSIGN_MULTIPLY = 30,
-    ASSIGN_DIVIDE = 31,
+    ASSIGN_ADD = 30,
+    ASSIGN_SUBTRACT = 31,
+    ASSIGN_MULTIPLY = 32,
+    ASSIGN_DIVIDE = 33,
 
-    IMPORT = 32,
+    IMPORT = 34,
 
-    NOT = 33
+    NOT = 35
 };
 
 constexpr const char* tokenNames[] = {
@@ -67,8 +69,10 @@ constexpr const char* tokenNames[] = {
 
     "COMMA",
     "SEMICOLON",
+    "COLON",
     "SQUOTE",
     "DQUOTE",
+    "PERIOD",
     "ASSIGN",
 
     "CMP_EQ",

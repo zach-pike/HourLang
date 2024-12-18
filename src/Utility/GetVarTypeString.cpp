@@ -17,6 +17,8 @@ const char* GetVarTypeString(std::any v) {
         return "string";
     } else if (v.type() == typeid(Array)) {
         return "array";
+    } else if (v.type() == typeid(Dict)) {
+        return "dict";
     }
 
     return "null";

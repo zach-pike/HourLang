@@ -35,6 +35,18 @@ String ConvToString(std::any v) {
         ss << ']';
 
         return ss.str();
+    } else if (v.type() == typeid(Dict)) {
+        auto a = std::any_cast<Dict>(v);
+        std::stringstream ss;
+        ss << "{";
+
+        for (auto pair : a) {
+            ss << "\n    " << ConvToString(pair.first) << " = " << ConvToString(pair.second);
+        }
+
+        ss << "\n}";
+
+        return ss.str();
     } else {
         return "null";
     }

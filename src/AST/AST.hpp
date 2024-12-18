@@ -41,7 +41,11 @@ enum class ASTNodeType {
 
     NOT = 25,
 
-    NEGATIVE = 26
+    NEGATIVE = 26,
+
+    ARRAY_LITERAL = 27,
+
+    DICT_LITERAL = 28
 };
 
 constexpr const char* nodeNames[] = {
@@ -77,7 +81,9 @@ constexpr const char* nodeNames[] = {
 
     "IMPORT",
 
-    "NOT"
+    "NOT",
+    "ARRAY_LITERAL",
+    "DICT_LITERAL"
 };
 
 struct ASTFunctionDefInfo {
@@ -103,3 +109,5 @@ public:
 };
 
 using ASTNodeList = std::vector<std::shared_ptr<ASTNode>>;
+
+void ExecAST(const ASTNodeList& list, Stack& stack);

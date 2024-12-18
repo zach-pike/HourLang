@@ -87,6 +87,11 @@ static std::any getFunc(Array params, Stack& s) {
         Int b = std::any_cast<Int>(params[1]);
 
         return a.at(b);
+    } else if (params[0].type() == typeid(Dict)) {
+        auto d = std::any_cast<Dict>(params[0]);
+        auto a = std::any_cast<String>(params[1]);
+
+        return d.at(a);
     }
 
     return std::any();
@@ -104,6 +109,12 @@ static std::any setFunc(Array params, Stack& s) {
     } else if (params[0].type() == typeid(Array)) {
         auto a = std::any_cast<Array>(params[0]);
         int b = ConvToInt(params[1]);
+
+        a.at(b) = params[2];
+        return a;
+    } else if (params[0].type() == typeid(Dict)) {
+        auto a = std::any_cast<Dict>(params[0]);
+        auto b = ConvToString(params[1]);
 
         a.at(b) = params[2];
         return a;
@@ -166,6 +177,22 @@ static std::any asciiFunc(Array params, Stack& s) {
     return l;
 }
 
+static Any dictFunc(Array params, Stack& s) {
+    Dict d;
+
+    auto kvp = std::any_cast<Array>(params.back());
+
+    for (auto& kv : kvp) {
+        auto pair = std::any_cast<Array>(kv);
+
+        d.insert({
+            std::any_cast<String>(pair.at(0)),
+            pair.at(1)
+        });
+    }
+
+    return d;
+}
 
 void InitGlobals(Stack& s) {
     auto noArgs = ExternalFunctionParameterInformation{
@@ -305,7 +332,7 @@ void InitGlobals(Stack& s) {
         std::make_shared<Function>(
             getFunc, 
             ExternalFunctionParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY | VariableType::DICT, VariableType::ANY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
@@ -319,21 +346,12 @@ void InitGlobals(Stack& s) {
         std::make_shared<Function>(
             setFunc,
             ExternalFunctionParameterInformation{
-                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY, VariableType::INT, VariableType::ANY }),
+                .requiredVariableTypes = std::vector<VariableType>({ VariableType::STRING | VariableType::ARRAY | VariableType::DICT, VariableType::ANY, VariableType::ANY }),
                 .hasVaArgs = false,
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
                 .vaType = VariableType::ANY
             }
-        )
-    );
-
-    s.setFunction("type",
-        std::make_shared<Function>(
-            [&](ParameterValueList params, Stack&) {
-                return String(GetVarTypeString(params[0]));
-            },
-            oneRequiredAny
         )
     );
 
@@ -389,6 +407,19 @@ void InitGlobals(Stack& s) {
                 .minVaArgs = 0,
                 .maxVaArgs = 0,
                 .vaType = VariableType::ANY
+            }
+        )
+    );
+
+    s.setFunction("dict", 
+        std::make_shared<Function>(
+            dictFunc, 
+            ExternalFunctionParameterInformation{
+                .requiredVariableTypes = std::vector<VariableType>(),
+                .hasVaArgs = true,
+                .minVaArgs = 0,
+                .maxVaArgs = 999,
+                .vaType = VariableType::ARRAY
             }
         )
     );

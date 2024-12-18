@@ -1,7 +1,7 @@
 #include "ASTBuilder.hpp"
 #include "Exceptions/Exceptions.hpp"
 #include "Types.hpp"
-
+#include <assert.h>
 #include <optional>
 
 static bool StringHasOnlyNumbers(std::string s) {
@@ -62,7 +62,7 @@ static std::string ExpectToken(const TokenList& tokens, std::size_t& current, To
 static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::size_t& current);
 static std::shared_ptr<ASTNode> ParseStatement(const TokenList& tokens, std::size_t& current);
 
-// Parsing functions
+// Statement parsing functions
 static std::shared_ptr<ASTNode> ParseScope(const TokenList& tokens, std::size_t& current) {
     ExpectToken(tokens, current, TokenType::LEFT_CURLY);
 
@@ -269,153 +269,6 @@ static std::shared_ptr<ASTNode> ParseFunction(const TokenList& tokens, std::size
     );
 }
 
-static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::size_t& current) {
-    auto checkRight = [&](std::shared_ptr<ASTNode> lhs) {
-        Token nextToken = PeekToken(tokens, current, 0);
-
-        if (!IsExpressionToken(nextToken)) {
-            return lhs;
-        }
-
-        ASTNodeType nt;
-        switch(nextToken.type) {
-            case TokenType::ADD: nt = ASTNodeType::ADD; break;
-            case TokenType::SUBTRACT: nt = ASTNodeType::SUBTRACT; break;
-            case TokenType::MULTIPLY: nt = ASTNodeType::MULTIPLY; break;
-            case TokenType::DIVIDE: nt = ASTNodeType::DIVIDE; break;
-            case TokenType::CMP_EQ: nt = ASTNodeType::CMP_EQ; break;
-            case TokenType::CMP_NEQ: nt = ASTNodeType::CMP_NEQ; break;
-            case TokenType::CMP_LT: nt = ASTNodeType::CMP_LT; break;
-            case TokenType::CMP_GT: nt = ASTNodeType::CMP_GT; break;
-            case TokenType::CMP_LTE: nt = ASTNodeType::CMP_LTE; break;
-            case TokenType::CMP_GTE: nt = ASTNodeType::CMP_GTE; break;
-            default: throw std::runtime_error("Unknown expression operator");
-        }
-
-        // Skip operator token
-        SkipToken(tokens, current);
-
-        return std::make_shared<ASTNode>(
-            nt,
-            ASTNodeList {
-                // lhs
-                lhs,
-                // rhs
-                ParseExpression(tokens, current)
-            }
-        );
-    };
-
-    // Check what kind of expression it is
-    if (PeekToken(tokens, current, 0).type == TokenType::DQUOTE) {
-        ExpectToken(tokens, current, TokenType::DQUOTE);
-        std::string content = ExpectToken(tokens, current, TokenType::LITERAL);
-        ExpectToken(tokens, current, TokenType::DQUOTE);
-
-        return checkRight(
-            std::make_shared<ASTNode>(
-                ASTNodeType::LITERAL,
-                ASTNodeList{},
-                content
-            )
-        );
-    } else if (PeekToken(tokens, current, 0).type == TokenType::LEFT_BRACKET) {
-        ExpectToken(tokens, current, TokenType::LEFT_BRACKET);
-        
-        Array elems;
-
-        // Get a expression then a comma, repeating untill RIGHT_BRACKET
-        while(PeekToken(tokens, current, 0).type != TokenType::RIGHT_BRACKET) {
-            std::string lt = ExpectToken(tokens, current, TokenType::LITERAL);
-
-            auto a = StringToValue(lt);
-
-            if (!a.has_value()) throw std::runtime_error("Arrays do not support variable initialization as of yet!");
-
-            elems.push_back(a.value());
-                
-            if (PeekToken(tokens, current, 0).type == TokenType::RIGHT_BRACKET) break;
-            ExpectToken(tokens, current, TokenType::COMMA);
-        }
-
-        ExpectToken(tokens, current, TokenType::RIGHT_BRACKET);
-
-        return checkRight(
-                std::make_shared<ASTNode>(
-                    ASTNodeType::LITERAL,
-                    ASTNodeList {},
-                    elems
-                )
-            );
-
-    } else if (PeekToken(tokens, current, 0).type == TokenType::NOT) {
-        ExpectToken(tokens, current, TokenType::NOT);
-
-        // NOT expression 
-        // Get expression to the right
-        auto rhs = ParseExpression(tokens, current);
-
-        return std::make_shared<ASTNode>(
-            ASTNodeType::NOT,
-            ASTNodeList { rhs }
-        );
-    } else if (PeekToken(tokens, current, 0).type == TokenType::SUBTRACT) {
-        ExpectToken(tokens, current, TokenType::SUBTRACT);
-        auto child = ParseExpression(tokens, current);
-
-        return checkRight(
-            std::make_shared<ASTNode>(
-                ASTNodeType::NEGATIVE,
-                ASTNodeList { child }
-            )
-        );
-    } else if (PeekToken(tokens, current, 0).type == TokenType::LEFT_PAREN) {
-        ExpectToken(tokens, current, TokenType::LEFT_PAREN);
-
-        auto parenExpr = ParseExpression(tokens, current);
-
-        ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
-
-        return checkRight(parenExpr);
-    } else {
-        std::string literal = ExpectToken(tokens, current, TokenType::LITERAL);
-        
-        if (PeekToken(tokens, current, 0).type == TokenType::LEFT_PAREN) {
-            ExpectToken(tokens, current, TokenType::LEFT_PAREN);
-
-            ASTNodeList params;
-
-            // Get a expression then a comma, repeating untill RIGHT_PAREN
-            while(PeekToken(tokens, current, 0).type != TokenType::RIGHT_PAREN) {
-                params.push_back(ParseExpression(tokens, current));
-                
-                if (PeekToken(tokens, current, 0).type == TokenType::RIGHT_PAREN) break;
-                ExpectToken(tokens, current, TokenType::COMMA);
-            }
-
-            ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
-
-            return checkRight(
-                std::make_shared<ASTNode>(
-                    ASTNodeType::CALL,
-                    params,
-                    literal
-                )
-            );
-        } else {
-            auto v = StringToValue(literal);
-
-            return checkRight(
-                std::make_shared<ASTNode>(
-                    v.has_value() ? ASTNodeType::LITERAL : ASTNodeType::VARREF,
-                    ASTNodeList{},
-                    v.has_value() ? v.value() : literal
-                )
-            );
-        }
-    }
-}
-
 static std::shared_ptr<ASTNode> ParseReturn(const TokenList& tokens, std::size_t& current) {
     ExpectToken(tokens, current, TokenType::RETURN);
     std::shared_ptr<ASTNode> value = ParseExpression(tokens, current);
@@ -470,6 +323,253 @@ static std::shared_ptr<ASTNode> ParseFunctionCall(const TokenList& tokens, std::
     );
 }
 
+static std::shared_ptr<ASTNode> TryParseRight(const TokenList& tokens, std::size_t& current, std::shared_ptr<ASTNode> lhs) {
+    Token nextToken = PeekToken(tokens, current, 0);
+
+    if (!IsExpressionToken(nextToken)) {
+        return lhs;
+    }
+
+    ASTNodeType nt;
+    switch(nextToken.type) {
+        case TokenType::ADD: nt = ASTNodeType::ADD; break;
+        case TokenType::SUBTRACT: nt = ASTNodeType::SUBTRACT; break;
+        case TokenType::MULTIPLY: nt = ASTNodeType::MULTIPLY; break;
+        case TokenType::DIVIDE: nt = ASTNodeType::DIVIDE; break;
+        case TokenType::CMP_EQ: nt = ASTNodeType::CMP_EQ; break;
+        case TokenType::CMP_NEQ: nt = ASTNodeType::CMP_NEQ; break;
+        case TokenType::CMP_LT: nt = ASTNodeType::CMP_LT; break;
+        case TokenType::CMP_GT: nt = ASTNodeType::CMP_GT; break;
+        case TokenType::CMP_LTE: nt = ASTNodeType::CMP_LTE; break;
+        case TokenType::CMP_GTE: nt = ASTNodeType::CMP_GTE; break;
+        default: throw std::runtime_error("Unknown expression operator");
+    }
+
+    // Skip operator token
+    SkipToken(tokens, current);
+
+    return std::make_shared<ASTNode>(
+        nt,
+        ASTNodeList {
+            // lhs
+            lhs,
+            // rhs
+            ParseExpression(tokens, current)
+        }
+    );
+}
+
+// Expression parsing functions
+static std::shared_ptr<ASTNode> ParseExpressionLiteral(const TokenList& tokens, std::size_t& current) {
+    String litString = ExpectToken(tokens, current, TokenType::LITERAL);
+
+    std::optional<Any> litVal = StringToValue(litString);
+
+    if (litVal.has_value()) {
+        return TryParseRight(
+            tokens, 
+            current,
+            std::make_shared<ASTNode>(
+                ASTNodeType::LITERAL,
+                ASTNodeList {},
+                litVal.value()
+            )
+        );
+    } else {
+        return TryParseRight(
+            tokens, 
+            current,
+            std::make_shared<ASTNode>(
+                ASTNodeType::VARREF,
+                ASTNodeList {},
+                litString
+            )
+        );
+    }
+}
+
+static std::shared_ptr<ASTNode> ParseExpressionString(const TokenList& tokens, std::size_t& current) {
+    Token startToken = PeekToken(tokens, current, 0);
+
+    assert(startToken.type == TokenType::SQUOTE || startToken.type == TokenType::DQUOTE);
+
+    ExpectToken(tokens, current, startToken.type);
+
+    std::string str = ExpectToken(tokens, current, TokenType::LITERAL);
+
+    ExpectToken(tokens, current, startToken.type);
+
+    return TryParseRight(
+        tokens, 
+        current,
+        std::make_shared<ASTNode>(
+            ASTNodeType::LITERAL,
+            ASTNodeList {},
+            str
+        )
+    );
+}
+
+static std::shared_ptr<ASTNode> ParseExpressionParentheses(const TokenList& tokens, std::size_t& current) {
+    ExpectToken(tokens, current, TokenType::LEFT_PAREN);
+
+    auto n = ParseExpression(tokens, current);
+
+    ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
+
+    return TryParseRight(
+        tokens,
+        current,
+        n
+    );
+}
+
+static std::shared_ptr<ASTNode> ParseExpressionFunctionCall(const TokenList& tokens, std::size_t& current) {
+    String litString = ExpectToken(tokens, current, TokenType::LITERAL);
+
+    ASTNodeList params;
+
+    ExpectToken(tokens, current, TokenType::LEFT_PAREN);
+
+    while (PeekToken(tokens, current, 0).type != TokenType::LEFT_PAREN) {
+        params.push_back(ParseExpression(tokens, current));
+
+        if (PeekToken(tokens, current, 0).type != TokenType::COMMA) break;
+        ExpectToken(tokens, current, TokenType::COMMA);
+    }
+
+    ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
+
+    return TryParseRight(
+        tokens,
+        current,
+        std::make_shared<ASTNode>(
+            ASTNodeType::CALL,
+            params,
+            litString
+        )
+    );
+}
+
+static std::shared_ptr<ASTNode> ParseExpressionNot(const TokenList& tokens, std::size_t& current) {
+    ExpectToken(tokens, current, TokenType::NOT);
+
+    auto a = ParseExpression(tokens, current);
+
+    ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
+
+    return TryParseRight(
+        tokens,
+        current,
+        std::make_shared<ASTNode>(
+            ASTNodeType::NOT,
+            ASTNodeList { a }
+        )
+    );
+}
+
+static std::shared_ptr<ASTNode> ParseExpressionArrayLiteral(const TokenList& tokens, std::size_t& current) {
+    ASTNodeList nodes;
+
+    ExpectToken(tokens, current, TokenType::LEFT_BRACKET);
+
+    while (PeekToken(tokens, current, 0).type != TokenType::RIGHT_BRACKET) {
+        nodes.push_back(ParseExpression(tokens, current));
+
+        if (PeekToken(tokens, current, 0).type != TokenType::COMMA) break;
+        ExpectToken(tokens, current, TokenType::COMMA);
+    }
+
+    ExpectToken(tokens, current, TokenType::RIGHT_BRACKET);
+
+    return TryParseRight(
+        tokens,
+        current,
+        std::make_shared<ASTNode>(
+            ASTNodeType::ARRAY_LITERAL,
+            nodes
+        )
+    );
+
+}
+
+static std::shared_ptr<ASTNode> ParseExpressionDictLiteral(const TokenList& tokens, std::size_t& current) {
+    ASTDictLiteralInfo dictInfo;
+
+    ExpectToken(tokens, current, TokenType::LEFT_CURLY);
+
+    while (PeekToken(tokens, current, 0).type != TokenType::RIGHT_CURLY) {
+        String key = ExpectToken(tokens, current, TokenType::LITERAL);
+
+        ExpectToken(tokens, current, TokenType::ASSIGN);
+
+        auto value = ParseExpression(tokens, current);
+
+        dictInfo.insert({ key, value });
+
+        if (PeekToken(tokens, current, 0).type != TokenType::COMMA) break;
+        ExpectToken(tokens, current, TokenType::COMMA);
+    }
+
+    ExpectToken(tokens, current, TokenType::RIGHT_CURLY);
+
+    return TryParseRight(
+        tokens,
+        current,
+        std::make_shared<ASTNode>(
+            ASTNodeType::DICT_LITERAL,
+            ASTNodeList {},
+            dictInfo
+        )
+    );
+
+}
+
+static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::size_t& current) {
+    Token firstToken = PeekToken(tokens, current, 0);
+
+    switch(firstToken.type) {
+        // true / 63 / 72.5
+        case TokenType::LITERAL: {
+            // Peek the next token
+            Token nextToken = PeekToken(tokens, current, 1);
+
+            if (nextToken.type == TokenType::LEFT_PAREN) {
+                return ParseExpressionFunctionCall(tokens, current);
+            } else {
+                return ParseExpressionLiteral(tokens, current);
+            }
+        } break;
+
+        // "string" / 'string'
+        case TokenType::SQUOTE:
+        case TokenType::DQUOTE: {
+            return ParseExpressionString(tokens, current);
+        } break;
+
+        // ( paren group )
+        case TokenType::LEFT_PAREN: {
+            return ParseExpressionParentheses(tokens, current);
+        } break;
+
+        case TokenType::NOT: {
+            return ParseExpressionNot(tokens, current);
+        } break;
+        
+        // [ "Array", 12, true, 5 + 2] 
+        case TokenType::LEFT_BRACKET: {
+            return ParseExpressionArrayLiteral(tokens, current);
+        } break;
+
+        // Dictionary { hello = "test", test=12 }
+        case TokenType::LEFT_CURLY: {
+            return ParseExpressionDictLiteral(tokens, current);
+        } break;
+
+        default: throw std::runtime_error("Unknown expression type");
+    }
+}
+
 static std::shared_ptr<ASTNode> ParseStatement(const TokenList& tokens, std::size_t& current) {
     auto token = PeekToken(tokens, current, 0);
 
@@ -511,16 +611,4 @@ ASTNodeList BuildAST(TokenList tokens) {
     }
 
     return ast;
-}
-
-void ExecAST(const ASTNodeList& list, Stack& stack) {
-    try {
-        for (const auto& n : list) {
-            n->getValue(stack);
-            // n->printDebug();
-        }
-    } catch (std::exception& e) {
-        std::cout << "Exception thrown in execution!\n"
-                  << e.what() << '\n';
-    }
 }

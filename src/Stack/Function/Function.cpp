@@ -26,6 +26,8 @@ static VariableType getVarType(std::any a) {
         return VariableType::STRING;
     } else if (a.type() == typeid(Array)) {
         return VariableType::ARRAY;
+    } else if(a.type() == typeid(Dict)) {
+        return VariableType::DICT;
     } else {
         throw std::runtime_error("Unknown datatype");
     }

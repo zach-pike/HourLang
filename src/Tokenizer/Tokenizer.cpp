@@ -14,6 +14,8 @@ TokenMap GetTokenMap() {
 
         { ",", TokenType::COMMA },
         { ";", TokenType::SEMICOLON },
+        { ":", TokenType::COLON },
+        { ".", TokenType::COLON },
         { "'", TokenType::SQUOTE },
         { "\"", TokenType::DQUOTE },
         { "=", TokenType::ASSIGN },
