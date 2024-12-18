@@ -40,6 +40,8 @@ void HourInterpreter::execCode(std::string code) {
             std::cout << '\n';
         }
         std::cout << "---------- END TOKEN LIST ----------\n\n";
+
+        return;
     }
 
     ASTNodeList prgm;
@@ -61,6 +63,7 @@ void HourInterpreter::execCode(std::string code) {
 
         std::cout << "---------- END AST Tree View ----------\n";
 
+        return;
     }
 
     ExecAST(prgm, stack);

@@ -22,31 +22,9 @@ String ConvToString(std::any v) {
         return std::any_cast<String>(v);
 
     } else if (v.type() == typeid(Array)) {
-        auto a = std::any_cast<Array>(v);
-        std::stringstream ss;
-        ss << '[';
-
-        for (int i=0; i<a.size(); i++) {
-            ss << ConvToString(a[i]);
-            
-            if (i != a.size()-1) ss << ", ";
-        }
-
-        ss << ']';
-
-        return ss.str();
+        return "[array]";
     } else if (v.type() == typeid(Dict)) {
-        auto a = std::any_cast<Dict>(v);
-        std::stringstream ss;
-        ss << "{";
-
-        for (auto pair : a) {
-            ss << "\n    " << ConvToString(pair.first) << " = " << ConvToString(pair.second);
-        }
-
-        ss << "\n}";
-
-        return ss.str();
+        return "{dict}";
     } else {
         return "null";
     }
