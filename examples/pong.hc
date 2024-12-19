@@ -148,11 +148,7 @@ while (not WindowShouldClose()) {
         }
     }
 
-    if (ballY <= 0) {
-        ballVelY *= -1;
-    }
-
-    if (ballY >= windowHeight) {
+    if ((ballY <= 0) || (ballY >= windowHeight)) {
         ballVelY *= -1;
     }
 }

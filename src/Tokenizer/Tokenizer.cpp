@@ -90,21 +90,17 @@ TokenList Tokenizer(std::string code) {
     std::string accumulator = "";
 
     bool stringMode = false;
-    std::size_t stringCount = -1;
     char stringTerm;
 
     bool commentMode = false;
 
-    auto processAccumulator = [&](bool skip) {
-        if (skip) {
-            return;
-        };
-
+    auto processAccumulator = [&]() {
         for (auto pair : tokenMap) {
             // Found token
             std::size_t tokenPos = accumulator.rfind(pair.first);
             if (tokenPos == std::string::npos) continue;
 
+            // Stop periods from being tokenized if they are preceded by a num in the accumulator
             if (tokenPos != 0 && pair.second == TokenType::PERIOD) {
                 // Check if numbers come before this period
                 std::string str = accumulator.substr(0, tokenPos);
@@ -121,6 +117,7 @@ TokenList Tokenizer(std::string code) {
             tokenList.push_back(Token(pair.second));
             accumulator.clear();
 
+            // If we add a SQUOTE or DQUOTE then begin the string mode
             if (
                 (pair.second == TokenType::SQUOTE ||
                 pair.second == TokenType::DQUOTE) &&
@@ -136,7 +133,6 @@ TokenList Tokenizer(std::string code) {
     };
     
     for(std::size_t i=0; i<code.size(); i++) {
-
         // Are we entering comment mode?
         if (!commentMode && code[i] == '/' && (i+1) < code.size() && code[i+1] == '/') {
             commentMode = true;
@@ -157,34 +153,52 @@ TokenList Tokenizer(std::string code) {
 
         bool disabledStringMode = false;
 
-        if (stringMode && code[i] == stringTerm) {
+        // If we encounter the termination character without a escape
+        if (stringMode && code[i] == stringTerm && code[i-1] != '\\') {
             stringMode = false;
             disabledStringMode = true;
         }
 
-        bool shouldSkip = 
-            ((
-                code[i] == '=' ||
-                code[i] == '!' ||
-                code[i] == '>' ||
-                code[i] == '<' ||
-                code[i] == '&' ||
-                code[i] == '|' ||
-                code[i] == '+' ||
-                code[i] == '-' ||
-                code[i] == '*' ||
-                code[i] == '/'
-            ) && code[i+1] == '=') ||
-            (code[i] == '&' && code[i+1] == '&') ||
-            (code[i] == '|' && code[i+1] == '|') ||
-            (stringMode);
+        // Controls when we should skip tokenization
+        bool shouldSkip =
+            // == != >= <= &= |= += -= *= /=
+            (
+                (
+                    code[i] == '=' ||
+                    code[i] == '!' ||
+                    code[i] == '>' ||
+                    code[i] == '<' ||
+                    code[i] == '&' ||
+                    code[i] == '|' ||
+                    code[i] == '+' ||
+                    code[i] == '-' ||
+                    code[i] == '*' ||
+                    code[i] == '/'
+                ) && 
+                code[i+1] == '='
+            ) ||
+            // &&
+            (
+                code[i] == '&' && 
+                code[i+1] == '&'
+            ) ||
+            // ||
+            (
+                code[i] == '|' &&
+                code[i+1] == '|'
+            ) ||
 
-        processAccumulator(shouldSkip);
+            // Skip tokenization if in string mode
+            stringMode;
 
+        if (!shouldSkip)
+            processAccumulator();
+
+        // Reset stringTerm var to 0 to allow for starting new strings
         if (disabledStringMode) stringTerm = 0;
     }
 
-    processAccumulator(false);
+    processAccumulator();
 
     return tokenList;
 }

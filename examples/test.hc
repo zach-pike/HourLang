@@ -1,3 +1,1 @@
-if (true || false) {
-    print("Hello");
-}
+print("helllo\" world ");
