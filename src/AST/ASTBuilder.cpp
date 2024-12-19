@@ -342,6 +342,8 @@ static std::shared_ptr<ASTNode> TryParseRight(const TokenList& tokens, std::size
         case TokenType::CMP_GT: nt = ASTNodeType::CMP_GT; break;
         case TokenType::CMP_LTE: nt = ASTNodeType::CMP_LTE; break;
         case TokenType::CMP_GTE: nt = ASTNodeType::CMP_GTE; break;
+        case TokenType::BOOLEAN_AND: nt = ASTNodeType::BOOLEAN_AND; break;
+        case TokenType::BOOLEAN_OR: nt = ASTNodeType::BOOLEAN_OR; break;
         default: throw std::runtime_error("Unknown expression operator");
     }
 
@@ -431,7 +433,7 @@ static std::shared_ptr<ASTNode> ParseExpressionFunctionCall(const TokenList& tok
 
     ExpectToken(tokens, current, TokenType::LEFT_PAREN);
 
-    while (PeekToken(tokens, current, 0).type != TokenType::LEFT_PAREN) {
+    while (PeekToken(tokens, current, 0).type != TokenType::RIGHT_PAREN) {
         params.push_back(ParseExpression(tokens, current));
 
         if (PeekToken(tokens, current, 0).type != TokenType::COMMA) break;
@@ -452,17 +454,15 @@ static std::shared_ptr<ASTNode> ParseExpressionFunctionCall(const TokenList& tok
 }
 
 static std::shared_ptr<ASTNode> ParseExpressionNot(const TokenList& tokens, std::size_t& current) {
-    ExpectToken(tokens, current, TokenType::NOT);
+    ExpectToken(tokens, current, TokenType::BOOLEAN_NOT);
 
     auto a = ParseExpression(tokens, current);
-
-    ExpectToken(tokens, current, TokenType::RIGHT_PAREN);
 
     return TryParseRight(
         tokens,
         current,
         std::make_shared<ASTNode>(
-            ASTNodeType::NOT,
+            ASTNodeType::BOOLEAN_NOT,
             ASTNodeList { a }
         )
     );
@@ -501,7 +501,7 @@ static std::shared_ptr<ASTNode> ParseExpressionDictLiteral(const TokenList& toke
     while (PeekToken(tokens, current, 0).type != TokenType::RIGHT_CURLY) {
         String key = ExpectToken(tokens, current, TokenType::LITERAL);
 
-        ExpectToken(tokens, current, TokenType::ASSIGN);
+        ExpectToken(tokens, current, TokenType::COLON);
 
         auto value = ParseExpression(tokens, current);
 
@@ -520,6 +520,22 @@ static std::shared_ptr<ASTNode> ParseExpressionDictLiteral(const TokenList& toke
             ASTNodeType::DICT_LITERAL,
             ASTNodeList {},
             dictInfo
+        )
+    );
+
+}
+
+static std::shared_ptr<ASTNode> ParseExpressionNegative(const TokenList& tokens, std::size_t& current) {
+    ExpectToken(tokens, current, TokenType::SUBTRACT);
+
+    return TryParseRight(
+        tokens,
+        current,
+        std::make_shared<ASTNode>(
+            ASTNodeType::NEGATIVE,
+            ASTNodeList {
+                ParseExpression(tokens, current)
+            }
         )
     );
 
@@ -552,7 +568,7 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
             return ParseExpressionParentheses(tokens, current);
         } break;
 
-        case TokenType::NOT: {
+        case TokenType::BOOLEAN_NOT: {
             return ParseExpressionNot(tokens, current);
         } break;
         
@@ -566,7 +582,11 @@ static std::shared_ptr<ASTNode> ParseExpression(const TokenList& tokens, std::si
             return ParseExpressionDictLiteral(tokens, current);
         } break;
 
-        default: throw std::runtime_error("Unknown expression type");
+        case TokenType::SUBTRACT: {
+            return ParseExpressionNegative(tokens, current);
+        } break;
+
+        default: throw std::runtime_error("Unknown expression type " + std::string(tokenNames[(int) firstToken.type]));
     }
 }
 

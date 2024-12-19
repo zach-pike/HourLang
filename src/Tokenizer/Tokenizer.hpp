@@ -52,7 +52,10 @@ enum class TokenType {
 
     IMPORT = 34,
 
-    NOT = 35
+    BOOLEAN_NOT = 35,
+
+    BOOLEAN_AND = 36,
+    BOOLEAN_OR = 37
 };
 
 constexpr const char* tokenNames[] = {
@@ -101,7 +104,9 @@ constexpr const char* tokenNames[] = {
 
     "IMPORT",
 
-    "NOT"
+    "BOOLEAN_NOT",
+    "BOOLEAN_AND",
+    "BOOLEAN_OR"
 };
 
 struct CompareByLength {

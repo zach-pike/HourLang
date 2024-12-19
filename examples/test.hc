@@ -1,9 +1,3 @@
-a = {
-    b = [
-        "Hello",
-        "world",
-        true
-    ]
-};
-
-print(a);
+if (true || false) {
+    print("Hello");
+}

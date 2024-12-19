@@ -448,7 +448,7 @@ std::any ASTNode::getValue(Stack& stack) {
             return std::any();
         }
 
-        case ASTNodeType::NOT: {
+        case ASTNodeType::BOOLEAN_NOT: {
             assert(children.size() == 1);
             return !ConvToBool(children[0]->getValue(stack));
         } break;
@@ -490,6 +490,18 @@ std::any ASTNode::getValue(Stack& stack) {
             }
 
             return d;
+        } break;
+
+        case ASTNodeType::BOOLEAN_AND: {
+            assert(children.size() == 2);
+
+            return ConvToBool(children[0]->getValue(stack)) && ConvToBool(children[1]->getValue(stack));
+        } break;
+
+        case ASTNodeType::BOOLEAN_OR: {
+            assert(children.size() == 2);
+
+            return ConvToBool(children[0]->getValue(stack)) || ConvToBool(children[1]->getValue(stack));
         } break;
     }
 

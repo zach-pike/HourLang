@@ -15,7 +15,7 @@ TokenMap GetTokenMap() {
         { ",", TokenType::COMMA },
         { ";", TokenType::SEMICOLON },
         { ":", TokenType::COLON },
-        { ".", TokenType::COLON },
+        { ".", TokenType::PERIOD },
         { "'", TokenType::SQUOTE },
         { "\"", TokenType::DQUOTE },
         { "=", TokenType::ASSIGN },
@@ -46,22 +46,12 @@ TokenMap GetTokenMap() {
 
         { "return", TokenType::RETURN },
         { "import", TokenType::IMPORT },
-        { "not", TokenType::NOT },
+        { "not", TokenType::BOOLEAN_NOT },
+        { "&&", TokenType::BOOLEAN_AND },
+        { "||", TokenType::BOOLEAN_OR },
     };
 
     return tokens;
-}
-
-static std::vector<char> GetEqualsSkipCharacters() {
-    std::vector<char> a;
-
-    for (auto t : GetTokenMap()) {
-        if (std::strlen(t.first) == 2 && t.first[1] == '=') {
-            a.push_back(t.first[0]);
-        }
-    }
-
-    return a;
 }
 
 bool IsExpressionToken(Token t) {
@@ -74,7 +64,17 @@ bool IsExpressionToken(Token t) {
            t.type == TokenType::CMP_LT ||
            t.type == TokenType::CMP_GT ||
            t.type == TokenType::CMP_LTE ||
-           t.type == TokenType::CMP_GTE;
+           t.type == TokenType::CMP_GTE ||
+           t.type == TokenType::BOOLEAN_AND ||
+           t.type == TokenType::BOOLEAN_OR;
+}
+
+static bool ContainsOnlyNumbers(std::string s) {
+    for (int i=0; i<s.size(); i++) {
+        if (s[i] < '0' || s[i] > '9') return false;
+    }
+
+    return true && (s.size() > 0);
 }
 
 Token::Token(TokenType t):
@@ -86,62 +86,102 @@ Token::Token(TokenType t, std::any d):
 
 TokenList Tokenizer(std::string code) {
     const TokenMap tokenMap = GetTokenMap();
-    const auto     skipTokens = GetEqualsSkipCharacters();
     TokenList tokenList;
     std::string accumulator = "";
+
     bool stringMode = false;
+    std::size_t stringCount = -1;
+    char stringTerm;
+
     bool commentMode = false;
 
     auto processAccumulator = [&](bool skip) {
-        if (stringMode) {
-            if (accumulator.find('"') != (accumulator.size() - 1)) return;
+        if (skip) {
+            return;
+        };
 
-            tokenList.push_back(Token(TokenType::LITERAL, accumulator.substr(0, accumulator.size() - 1)));
-            tokenList.push_back(Token(TokenType::DQUOTE));
-            stringMode = false;
+        for (auto pair : tokenMap) {
+            // Found token
+            std::size_t tokenPos = accumulator.rfind(pair.first);
+            if (tokenPos == std::string::npos) continue;
 
-            accumulator.clear();
-        } else if (!skip) {
-            for (auto pair : tokenMap) {
-                // Found token
-                std::size_t tokenPos = accumulator.rfind(pair.first);
-                if (tokenPos == std::string::npos) continue;
-
-                if (tokenPos != 0) {
-                    // Literal before this token
-                    // extract it
-                    tokenList.push_back(Token(TokenType::LITERAL, accumulator.substr(0, tokenPos)));
-                }
-
-                // Add rest of this token
-                tokenList.push_back(Token(pair.second));
-                if (pair.second == TokenType::DQUOTE) stringMode = true;
-
-                accumulator.clear();
+            if (tokenPos != 0 && pair.second == TokenType::PERIOD) {
+                // Check if numbers come before this period
+                std::string str = accumulator.substr(0, tokenPos);
+                if (ContainsOnlyNumbers(str)) continue;
             }
+
+            if (tokenPos != 0) {
+                // Literal before this token
+                // extract it
+                tokenList.push_back(Token(TokenType::LITERAL, accumulator.substr(0, tokenPos)));
+            }
+
+            // Add rest of this token
+            tokenList.push_back(Token(pair.second));
+            accumulator.clear();
+
+            if (
+                (pair.second == TokenType::SQUOTE ||
+                pair.second == TokenType::DQUOTE) &&
+                !stringMode &&
+                stringTerm == 0
+            ) {
+                stringMode = true;
+                stringTerm = tokenList.back().type == TokenType::DQUOTE ? '"' : '\'';
+            }
+
+            break;
         }
     };
-
+    
     for(std::size_t i=0; i<code.size(); i++) {
 
+        // Are we entering comment mode?
         if (!commentMode && code[i] == '/' && (i+1) < code.size() && code[i+1] == '/') {
             commentMode = true;
         }
-
+        
+        // When we reach a newline then quit the comment mode
         if (commentMode && code[i] == '\n') {
             commentMode = false;
         }
 
+        // If in comment mode, skip characters
         if (commentMode) continue;
 
+        // if character is whitespace and were not in string mode, then discard the chars
         if (isspace(code[i]) && !stringMode) continue;
 
         accumulator += code[i];
 
-        bool thisCharIsSkipChar = std::find(skipTokens.begin(), skipTokens.end(), code[i]) != skipTokens.end();
-        bool nextCharIsEquals = i+1 < code.size() ? code[i+1] == '=' : false;
+        bool disabledStringMode = false;
 
-        processAccumulator(thisCharIsSkipChar &&  nextCharIsEquals);
+        if (stringMode && code[i] == stringTerm) {
+            stringMode = false;
+            disabledStringMode = true;
+        }
+
+        bool shouldSkip = 
+            ((
+                code[i] == '=' ||
+                code[i] == '!' ||
+                code[i] == '>' ||
+                code[i] == '<' ||
+                code[i] == '&' ||
+                code[i] == '|' ||
+                code[i] == '+' ||
+                code[i] == '-' ||
+                code[i] == '*' ||
+                code[i] == '/'
+            ) && code[i+1] == '=') ||
+            (code[i] == '&' && code[i+1] == '&') ||
+            (code[i] == '|' && code[i+1] == '|') ||
+            (stringMode);
+
+        processAccumulator(shouldSkip);
+
+        if (disabledStringMode) stringTerm = 0;
     }
 
     processAccumulator(false);
