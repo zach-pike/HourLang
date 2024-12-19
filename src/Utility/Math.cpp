@@ -7,22 +7,40 @@
 #include <stdexcept>
 #include <exception>
 
-std::any Add(std::any lhs, std::any rhs) {
-    if (lhs.type() == typeid(std::string) || rhs.type() == typeid(std::string)) {
-        std::string s1 = lhs.type() == typeid(std::string) ? std::any_cast<std::string>(lhs) : ConvToString(lhs);
-        std::string s2 = rhs.type() == typeid(std::string) ? std::any_cast<std::string>(rhs) : ConvToString(rhs);
+#include "Types.hpp"
+
+Any Add(Any lhs, Any rhs) {
+    if (lhs.type() == typeid(String) || rhs.type() == typeid(String)) {
+        String s1 = ConvToString(lhs);
+        String s2 = ConvToString(rhs);
 
         return s1 + s2;
-    } else if (lhs.type() == typeid(float) || rhs.type() == typeid(float)) {
-        float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-        float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
+    } else if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+        Float f1 = ConvToFloat(lhs);
+        Float f2 = ConvToFloat(rhs);
 
         return f1 + f2;
-    } else if (lhs.type() == typeid(int) || rhs.type() == typeid(int)) {
-        int i1 = lhs.type() == typeid(int) ? std::any_cast<int>(lhs) : ConvToInt(lhs);
-        int i2 = rhs.type() == typeid(int) ? std::any_cast<int>(rhs) : ConvToInt(rhs);
+    } else if (lhs.type() == typeid(Int) || rhs.type() == typeid(Int)) {
+        Int i1 = ConvToInt(lhs);
+        Int i2 = ConvToInt(rhs);
 
         return i1 + i2;
+    } else if (lhs.type() == typeid(Array) && rhs.type() == typeid(Array)) {
+        // Combine arrays
+        auto a = std::any_cast<Array>(lhs);
+        auto b = std::any_cast<Array>(rhs);
+
+        a.insert(a.end(), b.begin(), b.end());
+
+        return a;
+    } else if (lhs.type() == typeid(Dict) && rhs.type() == typeid(Dict)) {
+        // Combine dicts
+        auto a = std::any_cast<Dict>(lhs);
+        auto b = std::any_cast<Dict>(rhs);
+
+        a.insert(b.begin(), b.end());
+
+        return a;
     } else {
         // Only other type combo left is bool + bool
         bool b1 = std::any_cast<bool>(lhs);
@@ -32,15 +50,15 @@ std::any Add(std::any lhs, std::any rhs) {
     }
 }
 
-std::any Subtract(std::any lhs, std::any rhs) {
-    if (lhs.type() == typeid(float) || rhs.type() == typeid(float)) {
-        float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-        float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
+Any Subtract(Any lhs, Any rhs) {
+    if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+        Float f1 = ConvToFloat(lhs);
+        Float f2 = ConvToFloat(rhs);
 
         return f1 - f2;
-    } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-        int i1 = std::any_cast<int>(lhs);
-        int i2 = std::any_cast<int>(rhs);
+    } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+        Int i1 = std::any_cast<Int>(lhs);
+        Int i2 = std::any_cast<Int>(rhs);
 
         return i1 - i2;
     } else {
@@ -48,15 +66,15 @@ std::any Subtract(std::any lhs, std::any rhs) {
     }
 }
 
-std::any Multiply(std::any lhs, std::any rhs) {
-    if (lhs.type() == typeid(float) || rhs.type() == typeid(float)) {
-        float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-        float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
+Any Multiply(Any lhs, Any rhs) {
+    if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+        Float f1 = ConvToFloat(lhs);
+        Float f2 = ConvToFloat(rhs);
 
         return f1 * f2;
-    } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-        int i1 = std::any_cast<int>(lhs);
-        int i2 = std::any_cast<int>(rhs);
+    } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+        Int i1 = std::any_cast<Int>(lhs);
+        Int i2 = std::any_cast<Int>(rhs);
 
         return i1 * i2;
     } else {
@@ -64,15 +82,15 @@ std::any Multiply(std::any lhs, std::any rhs) {
     }
 }
 
-std::any Divide(std::any lhs, std::any rhs) {
-    if (lhs.type() == typeid(float) || rhs.type() == typeid(float)) {
-        float f1 = lhs.type() == typeid(float) ? std::any_cast<float>(lhs) : ConvToFloat(lhs);
-        float f2 = rhs.type() == typeid(float) ? std::any_cast<float>(rhs) : ConvToFloat(rhs);
+Any Divide(Any lhs, Any rhs) {
+    if (lhs.type() == typeid(Float) || rhs.type() == typeid(Float)) {
+        Float f1 = ConvToFloat(lhs);
+        Float f2 = ConvToFloat(rhs);
 
         return f1 / f2;
-    } else if (lhs.type() == typeid(int) && rhs.type() == typeid(int)) {
-        int i1 = std::any_cast<int>(lhs);
-        int i2 = std::any_cast<int>(rhs);
+    } else if (lhs.type() == typeid(Int) && rhs.type() == typeid(Int)) {
+        Int i1 = std::any_cast<Int>(lhs);
+        Int i2 = std::any_cast<Int>(rhs);
 
         return i1 / i2;
     } else {

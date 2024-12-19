@@ -6,9 +6,9 @@
 class MultiLineManager {
 private:
     std::size_t indent = 0;
-    std::stringstream ss;
+    std::ostream& os;
 public:
-    MultiLineManager();
+    MultiLineManager(std::ostream& os);
     ~MultiLineManager();
 
     void addIndentLevel();
@@ -19,5 +19,5 @@ public:
     void addText(std::string text);
     void addNewline();
 
-    std::string getString() const;
+    std::size_t getIndentLevel() const;
 };

@@ -8,26 +8,74 @@
 #include "Types.hpp"
 #include "AST/AST.hpp"
 
-String ConvToString(std::any v) {
-    if (v.type() == typeid(Int)) {
-        return std::to_string(std::any_cast<Int>(v));
+#include "Utility/MultiLineManager.hpp"
 
-    } else if (v.type() == typeid(Float)) {
-        return std::to_string(std::any_cast<Float>(v));
+static void recurseObject(Any a, MultiLineManager& m) {
+    if (a.type() == typeid(Array)) {
+        m.addText("[");
+        
+        auto arr = std::any_cast<Array>(a);
+        if (arr.size() > 0) m.addNewline();
 
-    } else if (v.type() == typeid(Bool)) {
-        return std::any_cast<Bool>(v) ? "true" : "false";
+        m.addIndentLevel();
 
-    } else if (v.type() == typeid(String)) {
-        return std::any_cast<String>(v);
+        for (auto& b : arr) {
+            m.insertIndent();
+            recurseObject(b, m);
 
-    } else if (v.type() == typeid(Array)) {
-        return "[array]";
-    } else if (v.type() == typeid(Dict)) {
-        return "{dict}";
+            m.addText(", ");
+            m.addNewline();
+        }
+
+        m.removeIndentLevel();
+
+        m.insertIndent();
+        m.addText("]");
+    } else if (a.type() == typeid(Dict)) {
+        m.addText("{");
+
+        auto dict = std::any_cast<Dict>(a);
+
+        if (dict.size() > 0) m.addNewline();
+
+        m.addIndentLevel();
+
+        for (auto child : dict) {
+            m.insertIndent();
+
+            m.addText(child.first);
+            m.addText(": ");
+            recurseObject(child.second, m);
+
+            m.addText(", ");
+            m.addNewline();
+        }
+
+        m.removeIndentLevel();
+        m.insertIndent();
+        m.addText("}");
+    } else if (a.type() == typeid(String)) {
+        if (m.getIndentLevel() != 0) m.addText("\"");
+        m.addText(std::any_cast<String>(a));
+        if (m.getIndentLevel() != 0) m.addText("\"");
+    } else if (a.type() == typeid(Int)) {
+        m.addText(std::to_string(std::any_cast<Int>(a)));
+    } else if (a.type() == typeid(Float)) {
+        m.addText(std::to_string(std::any_cast<Float>(a)));
+    } else if (a.type() == typeid(Bool)) {
+        m.addText(std::any_cast<Bool>(a) ? "true" : "false");
     } else {
-        return "null";
+        throw std::runtime_error("Could not convert type to string!");
     }
+}
+
+String ConvToString(std::any v) {
+    std::stringstream ss;
+    MultiLineManager mm(ss);
+
+    recurseObject(v, mm);
+
+    return ss.str();
 }
 
 Float ConvToFloat(std::any v) {

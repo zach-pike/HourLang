@@ -14,8 +14,6 @@
 #include "AST/ASTBuilder.hpp"
 #include "Tokenizer/Tokenizer.hpp"
 
-#include "Utility/MultiLineManager.hpp"
-
 static std::any toStringFunc(Array params, Stack& s) {
     return ConvToString(params[0]);
 }
@@ -196,77 +194,14 @@ static Any dictFunc(Array params, Stack& s) {
     return d;
 }
 
-static void recurse(Any a, MultiLineManager& m) {
-    if (a.type() == typeid(Array)) {
-        m.addText("[");
-        
-        auto arr = std::any_cast<Array>(a);
-        if (arr.size() > 0) m.addNewline();
-
-        m.addIndentLevel();
-
-        for (auto& b : arr) {
-            m.insertIndent();
-            recurse(b, m);
-
-            m.addText(", ");
-            m.addNewline();
-        }
-
-        m.removeIndentLevel();
-
-        m.insertIndent();
-        m.addText("]");
-    } else if (a.type() == typeid(Dict)) {
-        m.addText("{");
-
-        auto dict = std::any_cast<Dict>(a);
-
-        if (dict.size() > 0) m.addNewline();
-
-        m.addIndentLevel();
-
-        for (auto child : dict) {
-            m.insertIndent();
-
-            m.addText(child.first);
-            m.addText(" = ");
-            recurse(child.second, m);
-
-            m.addText(", ");
-            m.addNewline();
-        }
-
-        m.removeIndentLevel();
-        m.insertIndent();
-        m.addText("}");
-    } else if (a.type() == typeid(String)) {
-        m.addText("\"");
-        m.addText(ConvToString(a));
-        m.addText("\"");
-    } else {
-        m.addText(ConvToString(a));
-    }
-}
-
 static Any printFunc(Array params, Stack& s) {
-    MultiLineManager mm;
-
-    recurse(params[0], mm);
-
-    std::cout << mm.getString();
+    std::cout << ConvToString(params.front());
 
     return std::any();
 }
 
 static Any printlnFunc(Array params, Stack& s) {
-    MultiLineManager mm;
-
-    recurse(params[0], mm);
-
-    mm.addNewline();
-
-    std::cout << mm.getString();
+    std::cout << ConvToString(params.front()) << '\n';
 
     return std::any();
 }

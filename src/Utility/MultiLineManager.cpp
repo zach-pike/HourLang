@@ -1,6 +1,7 @@
 #include "MultiLineManager.hpp"
 
-MultiLineManager::MultiLineManager() {}
+MultiLineManager::MultiLineManager(std::ostream& _os):
+    os(_os) {}
 MultiLineManager::~MultiLineManager() {}
 
 void MultiLineManager::addIndentLevel() {
@@ -12,17 +13,17 @@ void MultiLineManager::removeIndentLevel() {
 }
 
 void MultiLineManager::insertIndent() {
-    for (int i=0; i<indent; i++) ss << "  ";
+    for (int i=0; i<indent; i++) os << "  ";
 }
 
 void MultiLineManager::addText(std::string text) {
-    ss << text;
+    os << text;
 }
 
 void MultiLineManager::addNewline() {
-    ss << '\n';
+    os << '\n';
 }
 
-std::string MultiLineManager::getString() const {
-    return ss.str();
+std::size_t MultiLineManager::getIndentLevel() const {
+    return indent;
 }
