@@ -12,6 +12,17 @@
 
 #include "ASTBuilder.hpp"
 
+static Any RecurseObject(Any v, const std::vector<std::string>& path, std::size_t c = 0) {
+    if (c >= path.size()) return v;
+
+    std::string objKey = path.at(c);
+    assert(v.type() == typeid(Dict));
+
+    Dict dict = std::any_cast<Dict>(v);
+
+    return RecurseObject(dict.at(objKey), path, c + 1);
+}
+
 ASTNode::ASTNode(ASTNodeType _type):
     type(_type) {}
 
@@ -31,8 +42,7 @@ std::any ASTNode::getValue(Stack& stack) {
                 data.type() == typeid(String) ||
                 data.type() == typeid(Int) ||
                 data.type() == typeid(Float) ||
-                data.type() == typeid(Bool) ||
-                data.type() == typeid(Array)
+                data.type() == typeid(Bool)
             );
 
             return data;
@@ -364,11 +374,18 @@ std::any ASTNode::getValue(Stack& stack) {
 
         case ASTNodeType::VARREF: {
             // If we get here we resolve the variable
-            std::string vName = std::any_cast<std::string>(data);
-            auto var = stack.getVariable(vName);
+            ASTVarRefInfo varRef = std::any_cast<ASTVarRefInfo>(data);
+            auto var = stack.getVariable(varRef.varName);
 
-            if (!var.has_value()) throw NoVariableFound(vName);
-            return var.value();
+            if (!var.has_value()) throw NoVariableFound(varRef.varName);
+
+            if (varRef.path.size() != 0) {
+                // Try and recurse this object
+                return RecurseObject(var.value(), varRef.path);
+            } else {
+                return var.value();
+            }
+
         } break;
 
         case ASTNodeType::ADD_ASSIGN: {

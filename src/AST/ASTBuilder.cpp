@@ -378,13 +378,28 @@ static std::shared_ptr<ASTNode> ParseExpressionLiteral(const TokenList& tokens, 
             )
         );
     } else {
+        // Variable reference
+        // Check if we have a period to the right
+        // if we have a period, then we assume this is a dict and the user is destructuring 
+
+        std::vector<std::string> path;
+
+        while(PeekToken(tokens, current, 0).type == TokenType::PERIOD) {
+            ExpectToken(tokens, current, TokenType::PERIOD);
+
+            path.push_back(ExpectToken(tokens, current, TokenType::LITERAL));
+        }
+
         return TryParseRight(
             tokens, 
             current,
             std::make_shared<ASTNode>(
                 ASTNodeType::VARREF,
                 ASTNodeList {},
-                litString
+                ASTVarRefInfo {
+                    .varName = litString,
+                    .path = path
+                }
             )
         );
     }
