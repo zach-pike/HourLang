@@ -76,13 +76,14 @@ constexpr const char* nodeNames[] = {
     "SCOPE",
     "ASSIGN",
     "VARREF",
+
     "ADD_ASSIGN",
     "SUB_ASSIGN",
     "MUL_ASSIGN",
     "DIV_ASSIGN",
 
     "IMPORT",
-    "NEGATIVE"
+    "NEGATIVE",
 
     "ARRAY_LITERAL",
     "DICT_LITERAL",
@@ -90,7 +91,7 @@ constexpr const char* nodeNames[] = {
     "BOOLEAN_NOT",
     "BOOLEAN_AND",
     "BOOLEAN_OR",
-    
+
     "OBJ_DESCTRUCTURE"
 };
 
