@@ -517,7 +517,17 @@ std::any ASTNode::getValue(Stack& stack) {
         } break;
 
         case ASTNodeType::OBJ_DESCTRUCTURE: {
-            
+            // Get value of first child and try to desc
+            assert(children.size() == 1);
+
+            auto val = children.front()->getValue(stack);
+            auto key = std::any_cast<String>(data);
+
+            if (val.type() != typeid(Dict)) throw std::runtime_error("Type cant be destructured");
+
+            auto d = std::any_cast<Dict>(val);
+
+            return d.at(key);
         } break;
     }
 
