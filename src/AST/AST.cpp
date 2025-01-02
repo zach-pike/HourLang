@@ -374,17 +374,12 @@ std::any ASTNode::getValue(Stack& stack) {
 
         case ASTNodeType::VARREF: {
             // If we get here we resolve the variable
-            ASTVarRefInfo varRef = std::any_cast<ASTVarRefInfo>(data);
-            auto var = stack.getVariable(varRef.varName);
+            String varName = std::any_cast<String>(data);
+            auto var = stack.getVariable(varName);
 
-            if (!var.has_value()) throw NoVariableFound(varRef.varName);
+            if (!var.has_value()) throw NoVariableFound(varName);
 
-            if (varRef.path.size() != 0) {
-                // Try and recurse this object
-                return RecurseObject(var.value(), varRef.path);
-            } else {
-                return var.value();
-            }
+            return var.value();
 
         } break;
 
@@ -519,6 +514,10 @@ std::any ASTNode::getValue(Stack& stack) {
             assert(children.size() == 2);
 
             return ConvToBool(children[0]->getValue(stack)) || ConvToBool(children[1]->getValue(stack));
+        } break;
+
+        case ASTNodeType::OBJ_DESCTRUCTURE: {
+            
         } break;
     }
 

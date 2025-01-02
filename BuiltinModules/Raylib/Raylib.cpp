@@ -198,7 +198,38 @@ extern "C" {
             )
         );
 
-        
+        MODULE_EXPORT(
+            funcs,
+            "LoadTexture",
+            "rayLoadTexture",
+            PARAM_TYPES(
+                VariableType::STRING
+            )
+        );
+
+        MODULE_EXPORT(
+            funcs,
+            "Vector2",
+            "rayVector2",
+            PARAM_TYPES(
+                VariableType::INT | VariableType::FLOAT,
+                VariableType::INT | VariableType::FLOAT
+            )
+        );
+
+        MODULE_EXPORT(
+            funcs,
+            "DrawTextureEx",
+            "rayDrawTextureEx",
+            PARAM_TYPES(
+                VariableType::ANY,
+                VariableType::ANY,
+                VariableType::INT | VariableType::FLOAT,
+                VariableType::INT | VariableType::FLOAT,
+                VariableType::ANY
+            )
+        );
+
         return funcs;
     }
 }

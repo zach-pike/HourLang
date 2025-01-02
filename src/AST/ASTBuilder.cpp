@@ -396,10 +396,7 @@ static std::shared_ptr<ASTNode> ParseExpressionLiteral(const TokenList& tokens, 
             std::make_shared<ASTNode>(
                 ASTNodeType::VARREF,
                 ASTNodeList {},
-                ASTVarRefInfo {
-                    .varName = litString,
-                    .path = path
-                }
+                litString
             )
         );
     }

@@ -45,7 +45,9 @@ enum class ASTNodeType {
 
     BOOLEAN_NOT = 28,
     BOOLEAN_AND = 29,
-    BOOLEAN_OR = 30
+    BOOLEAN_OR = 30,
+
+    OBJ_DESCTRUCTURE = 31
 };
 
 constexpr const char* nodeNames[] = {
@@ -86,6 +88,10 @@ constexpr const char* nodeNames[] = {
     "DICT_LITERAL",
 
     "BOOLEAN_NOT",
+    "BOOLEAN_AND",
+    "BOOLEAN_OR",
+    
+    "OBJ_DESCTRUCTURE"
 };
 
 struct ASTFunctionDefInfo {
